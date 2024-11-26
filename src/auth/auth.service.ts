@@ -2,11 +2,16 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AdminDto } from 'src/dto/admin.dto';
 import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prismaService';
-import { retry } from 'rxjs';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private jwt: JwtService,
+  ) {}
   async signup(admin: AdminDto) {
     //generating hash of password using argon2
     const hash = await argon.hash(admin.password);
@@ -21,7 +26,7 @@ export class AuthService {
       });
 
       //returning user
-      return user;
+      return this.signToken(user.id, user.username);
     } catch (error) {
       //if user already exists with the username
       if (error.code === 'P2002') {
@@ -45,13 +50,35 @@ export class AuthService {
 
       //check for password match
 
-      const passMatches = await argon.verify(user.password, admin.password);
+      const passMatches = await argon.verify(
+        user.password,
+        admin.password,
+      );
       if (!passMatches) {
         throw new ForbiddenException('Invalid Credentials');
       }
-      return user;
+      return this.signToken(user.id, user.username);
     } catch (error) {
       throw error;
     }
+  }
+
+  //generating jwt
+  secret = this.config.get('JWT_SECRET');
+  async signToken(
+    userId: string,
+    username: string,
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      username,
+    };
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: '1d',
+      secret: this.secret,
+    });
+    return {
+      access_token: token,
+    };
   }
 }
