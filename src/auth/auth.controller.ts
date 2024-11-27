@@ -1,4 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminDto } from 'src/dto/admin.dto';
 import { AuthService } from './auth.service';
 
@@ -11,6 +17,9 @@ export class AuthController {
   }
   @Post('signin')
   signin(@Body() adminDto: AdminDto) {
+    const date = new Date();
+    console.log(date.toISOString());
+
     return this.authService.signIn(adminDto);
   }
 }

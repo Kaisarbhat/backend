@@ -1,4 +1,7 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { AdminDto } from 'src/dto/admin.dto';
 import * as argon from 'argon2';
 import { PrismaService } from 'src/prisma/prismaService';
@@ -12,7 +15,9 @@ export class AuthService {
     private config: ConfigService,
     private jwt: JwtService,
   ) {}
-  async signup(admin: AdminDto) {
+  async signup(
+    admin: AdminDto,
+  ): Promise<{ access_token: string }> {
     //generating hash of password using argon2
     const hash = await argon.hash(admin.password);
 
@@ -30,12 +35,16 @@ export class AuthService {
     } catch (error) {
       //if user already exists with the username
       if (error.code === 'P2002') {
-        throw new ForbiddenException('Credentials Already Taken');
+        throw new ForbiddenException(
+          'Credentials Already Taken',
+        );
       }
       throw error;
     }
   }
-  async signIn(admin: AdminDto) {
+  async signIn(
+    admin: AdminDto,
+  ): Promise<{ access_token: string }> {
     try {
       //check for username in database
       const user = await this.prisma.admin.findUnique({
@@ -74,7 +83,7 @@ export class AuthService {
       username,
     };
     const token = await this.jwt.signAsync(payload, {
-      expiresIn: '1d',
+      expiresIn: '24h',
       secret: this.secret,
     });
     return {

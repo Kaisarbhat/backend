@@ -22,29 +22,28 @@ model User {
 }
 
 model Event {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  name        String   @unique
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String     @unique
   imageUrl    String
   description String
-  date        DateTime
+  date        String
   location    String
-
-  EventData EventData[]
+  eventData   EventData?
 }
 
 model EventData {
-  id         String  @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl   String
-  eventId    String  @db.ObjectId
-  event      Event   @relation(fields: [eventId], references: [id])
-  details1   String?
-  details2   String?
-  details3   String?
-  details4   String?
-  direction1 String?
-  direction2 String?
-  direction3 String?
-  direction4 String?
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  raceImageUrl String
+  eventId      String  @unique @db.ObjectId
+  event        Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  details1     String
+  details2     String?
+  details3     String?
+  details4     String?
+  direction1   String
+  direction2   String?
+  direction3   String?
+  direction4   String?
 }
 
 model Admin {
