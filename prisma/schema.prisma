@@ -29,6 +29,10 @@ model Event {
   description String
   date        String
   location    String
+  createdBy   String
+  createdAt   DateTime   @default(now())
+  updatedBy   String?
+  updatedAt   DateTime?  @updatedAt
   resultLink  String?
   eventData   EventData?
 }
@@ -49,9 +53,11 @@ model EventData {
 }
 
 model Admin {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  username String @unique
-  password String
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  username  String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
 }
 
 model RegistrationData {
@@ -84,4 +90,40 @@ model RegistrationData {
   timingCertificates       String?
   waiverAcknowledgement    Boolean
   joinClub                 Boolean
+}
+
+model OurFeatures {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl    String
+  title       String    @unique
+  description String
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedBy   String?
+  updatedAt   DateTime? @updatedAt
+}
+
+model RecentActivities {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
+}
+
+model AboutUs {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  createdAt DateTime @default(now())
+  amount    String
 }

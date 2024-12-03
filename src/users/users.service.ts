@@ -5,15 +5,24 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserDto } from 'src/dto/user.dto';
 import { PrismaService } from 'src/prisma/prismaService';
-
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
-
+  constructor(
+    private prisma: PrismaService,
+    private mailerService: MailerService,
+  ) {}
+  //adding users to club
   async joinus(userDto: UserDto) {
     try {
       const user = await this.prisma.user.create({
         data: userDto,
+      });
+      const email = this.mailerService.sendMail({
+        to: `${userDto.email}`,
+        from: 'ctc@gmail.com',
+        subject: 'Email testing',
+        html: '<b>Congratulation for joining  CTC</b>',
       });
       return user;
     } catch (error) {
@@ -25,5 +34,15 @@ export class UsersService {
         }
       }
     }
+  }
+
+  //sending email to joined users
+  async sendMail() {
+    return await this.mailerService.sendMail({
+      to: 'kaisar@inbox.mailtrap.io',
+      from: 'kaisra@gmail.com',
+      subject: 'Email testing',
+      html: '<b>Email send </b>',
+    });
   }
 }

@@ -32,6 +32,12 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   location: string;
+  @IsString()
+  @IsOptional()
+  createdBy: string;
+  @IsString()
+  @IsOptional()
+  createdAt: string;
 }
 
 export class UpdateEventDto {
@@ -57,6 +63,13 @@ export class UpdateEventDto {
   @IsString()
   @IsOptional()
   location?: string;
+
+  @IsString()
+  @IsOptional()
+  updatedBy: string;
+  @IsString()
+  @IsOptional()
+  updatedAt: string;
 }
 
 export class EventResponseDto {

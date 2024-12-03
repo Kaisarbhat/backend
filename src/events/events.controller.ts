@@ -8,16 +8,13 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { Admin } from '@prisma/client';
 import { JwtGuard } from 'src/auth/auth.guard';
-import { GetUser } from 'src/auth/get-user';
 import {
   CreateEventWithDataDto,
   UpdateEventWithDataDto,
 } from 'src/dto/event.dto';
 import { EventsService } from './events.service';
 import { EventRegistrationDto } from 'src/dto/event.registration.dto';
-import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(JwtGuard)
 @Controller('events')

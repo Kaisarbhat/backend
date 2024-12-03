@@ -1,5 +1,8 @@
-import { isString } from '@nestjs/class-validator';
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class AdminDto {
   @IsString()
@@ -19,4 +22,10 @@ export class UpdateAdminDto {
   @IsString()
   @IsNotEmpty()
   confirmPassword: string;
+  @IsString()
+  @IsOptional()
+  updatedBy: string;
+  @IsString()
+  @IsOptional()
+  updatedAt: string;
 }
