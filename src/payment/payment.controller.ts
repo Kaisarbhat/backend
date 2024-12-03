@@ -1,4 +1,9 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Post } from '@nestjs/common';
 
 @Controller('payment')
-export class PaymentController {}
+export class PaymentController {
+  @Post('razorpay')
+  payment() {
+    return 'successful';
+  }
+}

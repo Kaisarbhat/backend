@@ -24,10 +24,12 @@ model User {
 model Event {
   id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String     @unique
+  shortName   String
   imageUrl    String
   description String
   date        String
   location    String
+  resultLink  String?
   eventData   EventData?
 }
 
@@ -50,4 +52,36 @@ model Admin {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   username String @unique
   password String
+}
+
+model RegistrationData {
+  id                       String  @id @default(auto()) @map("_id") @db.ObjectId
+  eventId                  String  @db.ObjectId
+  runningCategory          String
+  firstName                String
+  lastName                 String
+  mobile                   String
+  email                    String  @unique
+  gender                   String
+  dateOfBirth              String
+  tShirtSize               String
+  city                     String
+  state                    String
+  bloodGroup               String
+  bibName                  String
+  runningClub              String
+  emergencyContactName     String
+  emergencyContactRelation String
+  emergencyContactNumber   String
+  cardiovascularDisease    Boolean
+  medicalSupervision       Boolean
+  pregnancyRisk            Boolean
+  asthma                   Boolean
+  dizziness                Boolean
+  chestPain                Boolean
+  chronicIllness           Boolean
+  otherMedicalConditions   String?
+  timingCertificates       String?
+  waiverAcknowledgement    Boolean
+  joinClub                 Boolean
 }

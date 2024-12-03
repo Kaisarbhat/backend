@@ -28,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(
         id: payload.sub,
       },
     });
-    delete user.password;
+    // delete user.password;
     return user;
   }
 }

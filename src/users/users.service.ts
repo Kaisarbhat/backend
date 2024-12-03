@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserDto } from 'src/dto/user.dto';
 import { PrismaService } from 'src/prisma/prismaService';
 
@@ -6,19 +10,20 @@ import { PrismaService } from 'src/prisma/prismaService';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  joinus(userDto: UserDto) {
+  async joinus(userDto: UserDto) {
     try {
-      const user = this.prisma.user.create({
-        data: {
-          name: userDto.name,
-          email: userDto.email,
-          phoneNumber: userDto.phoneNumber,
-          bloodGroup: userDto.bloodGroup,
-        },
+      const user = await this.prisma.user.create({
+        data: userDto,
       });
       return user;
     } catch (error) {
-      throw error;
+      if (error instanceof PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ForbiddenException(
+            `User with ${userDto.email} already exits `,
+          );
+        }
+      }
     }
   }
 }

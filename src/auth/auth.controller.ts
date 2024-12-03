@@ -1,25 +1,35 @@
 import {
   Body,
   Controller,
-  Get,
+  Param,
   Post,
-  UseGuards,
+  Put,
 } from '@nestjs/common';
-import { AdminDto } from 'src/dto/admin.dto';
+import {
+  AdminDto,
+  UpdateAdminDto,
+} from 'src/dto/admin.dto';
 import { AuthService } from './auth.service';
 
 @Controller('admin')
 export class AuthController {
   constructor(private authService: AuthService) {}
-  @Post('signup')
+  @Post('SignUp')
   signup(@Body() adminDto: AdminDto) {
     return this.authService.signup(adminDto);
   }
-  @Post('signin')
+  @Post('Login')
   signin(@Body() adminDto: AdminDto) {
-    const date = new Date();
-    console.log(date.toISOString());
-
     return this.authService.signIn(adminDto);
+  }
+  @Put('update/:username')
+  update(
+    @Param('username') username: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+  ) {
+    return this.authService.update(
+      username,
+      updateAdminDto,
+    );
   }
 }

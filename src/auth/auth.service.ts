@@ -1,6 +1,8 @@
+import { UpdateAdminDto } from './../dto/admin.dto';
 import {
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { AdminDto } from 'src/dto/admin.dto';
 import * as argon from 'argon2';
@@ -58,7 +60,6 @@ export class AuthService {
       }
 
       //check for password match
-
       const passMatches = await argon.verify(
         user.password,
         admin.password,
@@ -71,7 +72,58 @@ export class AuthService {
       throw error;
     }
   }
+  async update(
+    username: string,
+    updateAdminDto: UpdateAdminDto,
+  ) {
+    try {
+      //check for username in database
+      const admin = await this.prisma.admin.findUnique({
+        where: { username: username },
+      });
+      if (!admin)
+        throw new NotFoundException(
+          `Admin with username :  ${username} not found`,
+        );
+      //check password
+      const passMatches = await argon.verify(
+        admin.password,
+        updateAdminDto.oldPassword,
+      );
+      //if password is wrong
+      if (!passMatches)
+        throw new ForbiddenException('Incorrect Password');
+      if (
+        updateAdminDto.newPassword !==
+        updateAdminDto.confirmPassword
+      ) {
+        throw new ForbiddenException(
+          'Passwords do not Match',
+        );
+      }
+      //creating has hof new password
+      const newPass = await argon.hash(
+        updateAdminDto.newPassword,
+      );
+      //check if old and new Passwords are the same
+      const samePass = await argon.verify(
+        admin.password,
+        updateAdminDto.newPassword,
+      );
+      if (samePass) {
+        throw new ForbiddenException(
+          `Old and New Passwords can't be same `,
+        );
+      }
 
+      return this.prisma.admin.update({
+        where: { username: username },
+        data: { password: newPass },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
   //generating jwt
   secret = this.config.get('JWT_SECRET');
   async signToken(

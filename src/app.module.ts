@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
@@ -6,6 +6,9 @@ import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PaymentModule } from './payment/payment.module';
+import { AdminModule } from './admin/admin.module';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
   imports: [
@@ -20,8 +23,10 @@ import { PaymentModule } from './payment/payment.module';
       global: true,
     }),
     PaymentModule,
+    AdminModule,
+    PassportModule.register({}),
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtStrategy],
 })
 export class AppModule {}
