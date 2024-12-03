@@ -6,7 +6,7 @@ import {
   IsUrl,
 } from 'class-validator';
 
-export class RecentActivitiesDto {
+export class AboutUsDto {
   @IsUrl()
   @IsNotEmpty()
   imageUrl: string;
@@ -18,7 +18,7 @@ export class RecentActivitiesDto {
   createdAt: Date;
 }
 
-export class RecentActivitiesDtoResponse {
+export class AboutUsDtoResponse {
   id: string;
   imageUrl: string;
   createdBy: string;

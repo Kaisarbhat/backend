@@ -1,6 +1,10 @@
 import {
+  AboutUsDto,
+  AboutUsDtoResponse,
+} from './../dto/aboutUs.dto';
+import {
   RecentActivitiesDto,
-  RecentActivitiesResponse,
+  RecentActivitiesDtoResponse,
 } from 'src/dto/recentActivities.dto';
 import { Admin } from './../../node_modules/.prisma/client/index.d';
 import {
@@ -11,8 +15,10 @@ import { PrismaService } from 'src/prisma/prismaService';
 import {
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { OurFeaturesResponse } from 'src/dto/our.features.dto';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AdminService {
@@ -105,6 +111,11 @@ export class AdminService {
         where: { id: featureId },
       });
     } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new NotFoundException(
+          `The feature with ${featureId} does not exist`,
+        );
+      }
       throw error;
     }
   }
@@ -114,7 +125,7 @@ export class AdminService {
   async addRecentActivities(
     admin: Admin,
     recentActivitiesDto: RecentActivitiesDto,
-  ): Promise<RecentActivitiesResponse> {
+  ): Promise<RecentActivitiesDtoResponse> {
     try {
       const recentActivity =
         await this.prisma.recentActivities.create({
@@ -134,9 +145,9 @@ export class AdminService {
     }
   }
 
-  //getting all recentActivities from database
+  //getting all recentActivities images from database
   async getAllRecentActivities(): Promise<
-    RecentActivitiesResponse[]
+    RecentActivitiesDtoResponse[]
   > {
     try {
       const allRecentActivities =
@@ -151,13 +162,62 @@ export class AdminService {
     }
   }
 
-  //delete recentactivity
+  //delete recentactivity images
   async deleteRecentActivity(id: string) {
     try {
       return await this.prisma.recentActivities.delete({
         where: { id: id },
       });
     } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new NotFoundException(
+          `The image does not exist`,
+        );
+      }
+      throw error;
+    }
+  }
+
+  //adding aboutUs images to db
+  async addAboutUs(
+    admin: Admin,
+    aboutUsDto: AboutUsDto,
+  ): Promise<AboutUsDtoResponse> {
+    try {
+      return await this.prisma.aboutUs.create({
+        data: { ...aboutUsDto, createdBy: admin.username },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ForbiddenException(
+          `This image already exists`,
+        );
+      }
+      throw error;
+    }
+  }
+
+  //get all aboutus images from db
+  async getAllAboutUs(): Promise<AboutUsDtoResponse[]> {
+    try {
+      return await this.prisma.aboutUs.findMany({});
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //delete images in aboutus
+  async deleteAboutUs(id: string) {
+    try {
+      return await this.prisma.aboutUs.delete({
+        where: { id: id },
+      });
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new NotFoundException(
+          `The image does not exist`,
+        );
+      }
       throw error;
     }
   }

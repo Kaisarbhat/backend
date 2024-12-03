@@ -15,6 +15,8 @@ import {
 } from 'src/dto/event.dto';
 import { EventsService } from './events.service';
 import { EventRegistrationDto } from 'src/dto/event.registration.dto';
+import { GetUser } from 'src/auth/get-user';
+import { Admin } from '@prisma/client';
 
 @UseGuards(JwtGuard)
 @Controller('events')
@@ -30,9 +32,11 @@ export class EventsController {
   @Post('createEventWithData')
   // @UsePipes(new ValidationPipe({ transform: true }))
   async createEventWithData(
+    @GetUser() admin: Admin,
     @Body() createEventWithDataDto: CreateEventWithDataDto,
   ) {
     return this.eventService.createEventWithData(
+      admin,
       createEventWithDataDto,
     );
   }
@@ -60,10 +64,12 @@ export class EventsController {
   //update event
   @Put('update/:id')
   updateEvent(
+    @GetUser() admin: Admin,
     @Param('id') id: string,
     @Body() updateEventWithDataDto: UpdateEventWithDataDto,
   ) {
     return this.eventService.updateEvent(
+      admin,
       id,
       updateEventWithDataDto,
     );

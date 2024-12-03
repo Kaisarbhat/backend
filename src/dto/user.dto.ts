@@ -1,6 +1,8 @@
 import {
+  IsDate,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
 } from 'class-validator';
@@ -24,4 +26,16 @@ export class UserDto {
     message: 'Blood Group Expected',
   })
   bloodGroup: string;
+  @IsDate()
+  @IsOptional()
+  createdAt: Date;
+}
+
+export class UserResponseDto {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string;
+  bloodGroup: string;
+  createdAt: Date;
 }

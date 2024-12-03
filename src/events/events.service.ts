@@ -1,16 +1,9 @@
 import { EventRegistrationDto } from './../dto/event.registration.dto';
 import {
   CreateEventWithDataDto,
-  EventResponseWithDataDto,
-  UpdateEventDataDto,
   UpdateEventWithDataDto,
 } from './../dto/event.dto';
-import {
-  CreateEventDataDto,
-  CreateEventDto,
-  EventDataResponseDto,
-  EventResponseDto,
-} from 'src/dto/event.dto';
+import { EventResponseDto } from 'src/dto/event.dto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -22,6 +15,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
+import { Admin } from '@prisma/client';
 
 @Injectable()
 export class EventsService {
@@ -76,6 +70,7 @@ export class EventsService {
   // }
 
   async createEventWithData(
+    admin: Admin,
     createEventWithDataDto: CreateEventWithDataDto,
   ): Promise<EventResponseDto> {
     try {
@@ -93,7 +88,10 @@ export class EventsService {
         async (tx) => {
           // Create the event first
           const event = await tx.event.create({
-            data: createEventWithDataDto.event,
+            data: {
+              ...createEventWithDataDto.event,
+              createdBy: admin.username,
+            },
           });
 
           // Create the event data with the new event ID
@@ -127,6 +125,7 @@ export class EventsService {
       throw error;
     }
   }
+
   //get event based on id
   async getEventData(eventId: string) {
     try {
@@ -191,6 +190,8 @@ export class EventsService {
       throw error;
     }
   }
+
+  //past events
   async getPastEvents() {
     const currentDate = new Date()
       .toISOString()
@@ -218,6 +219,7 @@ export class EventsService {
 
   //updating events
   async updateEvent(
+    admin: Admin,
     eventId: string,
     updateEventWithDataDto: UpdateEventWithDataDto,
   ) {
@@ -238,20 +240,24 @@ export class EventsService {
       //update event data
       const updatedEvent = await this.prisma.$transaction(
         async (tx) => {
-          const udtEvent = await tx.event.update({
+          const updatedEvent = await tx.event.update({
             where: { id: eventId },
-            data: updateEventWithDataDto.event,
-          });
-          const udtEventData = await tx.eventData.update({
-            where: { id: event.eventData.id },
             data: {
-              ...updateEventWithDataDto.eventData,
-              eventId: udtEvent.id,
+              ...updateEventWithDataDto.event,
+              updatedBy: admin.username,
             },
           });
+          const updatedEventData =
+            await tx.eventData.update({
+              where: { id: event.eventData.id },
+              data: {
+                ...updateEventWithDataDto.eventData,
+                eventId: updatedEvent.id,
+              },
+            });
           return {
-            ...udtEvent,
-            udtEventData,
+            ...updatedEvent,
+            updatedEventData,
           };
         },
       );
@@ -381,13 +387,13 @@ export class EventsService {
         where: { id: eventId },
         include: { eventData: true },
       });
-
+      //if event does not exist
       if (!event) {
         throw new NotFoundException(
           `Event with id : ${eventId}  not found`,
         );
       }
-
+      //return deleted event
       return this.prisma.event.delete({
         where: { id: eventId },
       });

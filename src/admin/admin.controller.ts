@@ -17,6 +17,7 @@ import {
 import { GetUser } from 'src/auth/get-user';
 import { Admin } from '@prisma/client';
 import { RecentActivitiesDto } from 'src/dto/recentActivities.dto';
+import { AboutUsDto } from 'src/dto/aboutUs.dto';
 @UseGuards(JwtGuard)
 @Controller('adminservices')
 export class AdminController {
@@ -85,5 +86,25 @@ export class AdminController {
   @Delete('recentactivities/:id')
   deleteRecentActivity(@Param('id') id: string) {
     return this.adminService.deleteRecentActivity(id);
+  }
+
+  //ABOUTUS
+  //adding AboutUs
+  @Post('aboutus')
+  addAboutUs(
+    @GetUser() admin: Admin,
+    @Body() aboutUsDto: AboutUsDto,
+  ) {
+    return this.adminService.addAboutUs(admin, aboutUsDto);
+  }
+  //getting all AboutUs
+  @Get('aboutus')
+  getAllAboutUs() {
+    return this.adminService.getAllAboutUs();
+  }
+  //deleting AboutUs
+  @Delete('aboutus/:id')
+  deleteAboutUs(@Param('id') id: string) {
+    return this.adminService.deleteAboutUs(id);
   }
 }

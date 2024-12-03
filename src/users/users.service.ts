@@ -3,7 +3,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { UserDto } from 'src/dto/user.dto';
+import { UserDto, UserResponseDto } from 'src/dto/user.dto';
 import { PrismaService } from 'src/prisma/prismaService';
 import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
@@ -13,7 +13,7 @@ export class UsersService {
     private mailerService: MailerService,
   ) {}
   //adding users to club
-  async joinus(userDto: UserDto) {
+  async joinus(userDto: UserDto): Promise<UserResponseDto> {
     try {
       const user = await this.prisma.user.create({
         data: userDto,

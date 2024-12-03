@@ -14,11 +14,12 @@ datasource db {
 }
 
 model User {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  email       String @unique
+  email       String   @unique
   phoneNumber String
   bloodGroup  String
+  createdAt   DateTime @default(now())
 }
 
 model Event {
@@ -61,13 +62,13 @@ model Admin {
 }
 
 model RegistrationData {
-  id                       String  @id @default(auto()) @map("_id") @db.ObjectId
-  eventId                  String  @db.ObjectId
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId                  String   @db.ObjectId
   runningCategory          String
   firstName                String
   lastName                 String
   mobile                   String
-  email                    String  @unique
+  email                    String   @unique
   gender                   String
   dateOfBirth              String
   tShirtSize               String
@@ -88,6 +89,7 @@ model RegistrationData {
   chronicIllness           Boolean
   otherMedicalConditions   String?
   timingCertificates       String?
+  createdAt                DateTime @default(now())
   waiverAcknowledgement    Boolean
   joinClub                 Boolean
 }
@@ -126,4 +128,5 @@ model Payment {
   email     String
   createdAt DateTime @default(now())
   amount    String
+  success   Boolean
 }
