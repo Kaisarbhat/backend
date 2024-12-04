@@ -10,5 +10,6 @@ import { JwtStrategy } from 'src/strategy/jwt.strategy';
   imports: [PassportModule, AuthModule],
   providers: [AdminService, JwtStrategy],
   controllers: [AdminController],
+  exports: [AdminService],
 })
 export class AdminModule {}

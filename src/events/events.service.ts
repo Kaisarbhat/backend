@@ -1,9 +1,9 @@
+import { AdminService } from './../admin/admin.service';
 import { EventRegistrationDto } from './../dto/event.registration.dto';
 import {
-  CreateEventWithDataDto,
-  UpdateEventWithDataDto,
+  CreateEventDto,
+  UpdateEventDto,
 } from './../dto/event.dto';
-import { EventResponseDto } from 'src/dto/event.dto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -15,114 +15,70 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from '@prisma/client/runtime/library';
-import { Admin } from '@prisma/client';
+import { Admin, Prisma } from '@prisma/client';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private adminService: AdminService,
+  ) {}
 
-  // // add new events to the database
-  // async addEvent(
-  //   eventDto: CreateEventDto,
-  // ): Promise<EventResponseDto> {
-  //   try {
-  //     const event = await this.prisma.event.create({
-  //       data: eventDto,
-  //       include: {
-  //         eventData: true,
-  //       },
-  //     });
-
-  //     return event;
-  //   } catch (error) {
-  //     if (error instanceof PrismaClientKnownRequestError) {
-  //       if (error.code === 'P2002') {
-  //         throw new ForbiddenException(
-  //           `User with ${eventDto.name} already exits `,
-  //         );
-  //       }
-  //     }
-  //     throw error;
-  //   }
-  // }
-
-  // //add event data
-  // async addDataToEvent(
-  //   eventId: string,
-  //   eventDto: CreateEventDataDto,
-  // ): Promise<EventDataResponseDto> {
-  //   try {
-  //     const eventData = await this.prisma.eventData.create({
-  //       data: {
-  //         ...eventDto,
-  //         eventId,
-  //       },
-  //     });
-  //     return eventData;
-  //   } catch (error) {
-  //     if (error.code === 'P2002') {
-  //       throw new ForbiddenException(
-  //         'Event Data already Exists',
-  //       );
-  //     }
-  //     throw error;
-  //   }
-  // }
-
-  async createEventWithData(
+  //creating the event
+  async createEvent(
     admin: Admin,
-    createEventWithDataDto: CreateEventWithDataDto,
-  ): Promise<EventResponseDto> {
+    files: {
+      file1?: Express.Multer.File[];
+      file2?: Express.Multer.File[];
+      file3?: Express.Multer.File[];
+    },
+    createEventDto: CreateEventDto,
+  ) {
     try {
-      // Validate the input data
-      if (
-        !createEventWithDataDto?.event ||
-        !createEventWithDataDto?.eventData
-      ) {
+      // Destructuring for easy access
+      const [file1, file2, file3] = [
+        files.file1?.[0],
+        files.file2?.[0],
+        files.file3?.[0],
+      ];
+
+      // If any required files are missing, throw an error
+      if (!file1 || !file2 || !file3) {
         throw new Error(
-          'Invalid input: Both event and eventData are required',
+          'All files (file1, file2, file3) must be provided.',
         );
       }
 
-      const eventWithData = await this.prisma.$transaction(
-        async (tx) => {
-          // Create the event first
-          const event = await tx.event.create({
-            data: {
-              ...createEventWithDataDto.event,
-              createdBy: admin.username,
-            },
-          });
+      // Promise.all to upload files in parallel for better performance
+      const [
+        eventImageUrl,
+        middleImageUrl,
+        bottomImageUrl,
+      ] = await Promise.all([
+        this.adminService.uploadFile(file1),
+        this.adminService.uploadFile(file2),
+        this.adminService.uploadFile(file3),
+      ]);
 
-          // Create the event data with the new event ID
-          const eventData = await tx.eventData.create({
-            data: {
-              ...createEventWithDataDto.eventData,
-              eventId: event.id,
-            },
-          });
-
-          return {
-            ...event,
-            eventData,
-          };
+      // Create the event and save to the database
+      return await this.prisma.event.create({
+        data: {
+          ...createEventDto,
+          createdBy: admin.username,
+          eventImageUrl,
+          middleImageUrl,
+          bottomImageUrl,
         },
-      );
-
-      return eventWithData;
+      });
     } catch (error) {
-      // error handling
-      if (error instanceof PrismaClientValidationError) {
-        throw new Error(
-          'Invalid data structure: ' + error.message,
-        );
-      }
       if (error.code === 'P2002') {
         throw new ForbiddenException(
-          `Event with name ${createEventWithDataDto.event.name} already exists`,
+          `Event with ${createEventDto.name} Already exists`,
         );
       }
-      throw error;
+      throw new Error(
+        `Failed to create event: ${error.message}`,
+      );
     }
   }
 
@@ -132,9 +88,6 @@ export class EventsService {
       const event = await this.prisma.event.findUnique({
         where: {
           id: eventId,
-        },
-        include: {
-          eventData: true,
         },
       });
       if (!event)
@@ -150,42 +103,33 @@ export class EventsService {
   //get all events
   async getAllEvents() {
     try {
-      const allEvents = await this.prisma.event.findMany({
-        include: {
-          eventData: true,
-        },
+      return await this.prisma.event.findMany({
         orderBy: {
           date: 'desc',
         },
       });
-      return allEvents;
     } catch (error) {
       throw error;
     }
   }
 
   //get upcoming events
-
   async getUpcomingEvents() {
     const currentDate = new Date()
       .toISOString()
       .split('T')[0];
 
     try {
-      const events = this.prisma.event.findMany({
+      return await this.prisma.event.findMany({
         where: {
           date: {
             gte: currentDate,
           },
         },
-        include: {
-          eventData: true,
-        },
         orderBy: {
           date: 'asc',
         },
       });
-      return events;
     } catch (error) {
       throw error;
     }
@@ -198,20 +142,16 @@ export class EventsService {
       .split('T')[0];
 
     try {
-      const events = await this.prisma.event.findMany({
+      return await this.prisma.event.findMany({
         where: {
           date: {
             lt: currentDate,
           },
         },
-        include: {
-          eventData: true,
-        },
         orderBy: {
           date: 'desc',
         },
       });
-      return events;
     } catch (error) {
       throw error;
     }
@@ -221,184 +161,104 @@ export class EventsService {
   async updateEvent(
     admin: Admin,
     eventId: string,
-    updateEventWithDataDto: UpdateEventWithDataDto,
+    files: {
+      file1?: Express.Multer.File[];
+      file2?: Express.Multer.File[];
+      file3?: Express.Multer.File[];
+    },
+    updateEventDto: UpdateEventDto,
   ) {
     try {
-      const event = await this.prisma.event.findUnique({
-        where: {
-          id: eventId,
-        },
-        include: {
-          eventData: true,
-        },
-      });
-      //if event does not exist
-      if (!event)
-        throw new NotFoundException(
-          `Event with id : ${eventId} not found`,
-        );
-      //update event data
-      const updatedEvent = await this.prisma.$transaction(
-        async (tx) => {
-          const updatedEvent = await tx.event.update({
-            where: { id: eventId },
-            data: {
-              ...updateEventWithDataDto.event,
-              updatedBy: admin.username,
-            },
-          });
-          const updatedEventData =
-            await tx.eventData.update({
-              where: { id: event.eventData.id },
-              data: {
-                ...updateEventWithDataDto.eventData,
-                eventId: updatedEvent.id,
-              },
-            });
-          return {
-            ...updatedEvent,
-            updatedEventData,
-          };
-        },
-      );
-      return updatedEvent;
-    } catch (error) {
-      throw error;
-    }
-  }
+      // Destructuring files for easy access
+      const [file1, file2, file3] = [
+        files.file1?.[0],
+        files.file2?.[0],
+        files.file3?.[0],
+      ];
 
-  //update eventData
-
-  // async updateEventData(
-  //   eventId: string,
-  //   updateEventDataDto: UpdateEventDataDto,
-  //   eventDataId: string,
-  // ) {
-  //   try {
-  //     //find the event in database
-  //     const event = await this.prisma.event.findUnique({
-  //       where: { id: eventId },
-  //       include: { eventData: true },
-  //     });
-  //     //if eventId does not exist
-  //     if (!event) {
-  //       throw new NotFoundException(
-  //         `Event not found with ${eventId} id`,
-  //       );
-  //     }
-  //if event data is not present
-  //   if (!event.eventData) {
-  //     return this.prisma.eventData.create({
-  //         data: {
-  //           ...updateEventDataDto,
-  //           eventId,
-  //         },
-  //       });
-  //   }
-  //check for event data
-  //   const eventData = await this.prisma.eventData.findUnique({
-  //     where : {id : eventDataId}
-  //   })
-
-  //update existing eventdata
-  //     return this.prisma.eventData.update({
-  //       where: { id: eventDataId },
-  //       data: {
-  //         ...updateEventDataDto,
-  //         eventId,
-  //       },
-  //     });
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
-
-  //register for events
-  async registerForEvent(
-    eventId: string,
-    eventRegistrationDto: EventRegistrationDto,
-  ) {
-    let userExists = true;
-    try {
-      //use transaction if the user wants to join the club also
-      const registerUser = await this.prisma.$transaction(
-        async (tx) => {
-          //registering the user for event
-          const registerUserForEvent =
-            await tx.registrationData.create({
-              data: { ...eventRegistrationDto, eventId },
-            });
-          if (eventRegistrationDto.joinClub) {
-            const name =
-              eventRegistrationDto.firstName +
-              ' ' +
-              eventRegistrationDto.lastName;
-            //joining the user in the club
-            const joinUser = await tx.user.create({
-              data: {
-                name: name,
-                email: eventRegistrationDto.email,
-                phoneNumber: eventRegistrationDto.mobile,
-                bloodGroup: eventRegistrationDto.bloodGroup,
-              },
-            });
-            userExists = false;
-            //return user with join club
-            return {
-              ...registerUserForEvent,
-              joinUser,
-            };
-          }
-          //return only registration data
-          return { registerUserForEvent };
-        },
-      );
-      return registerUser;
-    } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        //duplicate key error
-        if (error.code === 'P2002') {
-          if (userExists) {
-            //need to be handled
-            throw new ForbiddenException(
-              'User already exists',
-            );
-          } else
-            throw new ForbiddenException(
-              'One User Can Register Only one time for one Event',
-            );
-        }
-        //transaction failed error
-        else if (error.code === 'P2004') {
-          throw new BadRequestException(
-            'Transaction Failed',
-          );
-        }
-      }
-      throw error;
-    }
-  }
-
-  //delete events
-  async deleteEvent(eventId: string) {
-    try {
-      //check if event exists
+      // Fetch the event to be updated
       const event = await this.prisma.event.findUnique({
         where: { id: eventId },
-        include: { eventData: true },
       });
-      //if event does not exist
+
+      // If the event does not exist, throw a NotFoundException
       if (!event) {
         throw new NotFoundException(
-          `Event with id : ${eventId}  not found`,
+          `Event with id: ${eventId} not found`,
         );
       }
-      //return deleted event
-      return this.prisma.event.delete({
+
+      // Prepare the data for updating, including the updateEventDto
+      const updatedData: any = {
+        ...updateEventDto,
+        updatedBy: admin.username,
+      };
+
+      // Handle file uploads if provided
+      if (file1) {
+        updatedData.eventImageUrl =
+          await this.adminService.uploadFile(file1);
+      }
+
+      if (file2) {
+        updatedData.middleImageUrl =
+          await this.adminService.uploadFile(file2);
+      }
+
+      if (file3) {
+        updatedData.bottomImageUrl =
+          await this.adminService.uploadFile(file3);
+      }
+
+      // Update the event with the prepared data
+      return await this.prisma.event.update({
         where: { id: eventId },
+        data: updatedData,
       });
     } catch (error) {
-      throw error;
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to update event: ${error.message}`,
+      );
+    }
+  }
+
+  //delete event based on id
+  async deleteEvent(eventId: string) {
+    try {
+      // Check if event exists before attempting to delete
+      const event = await this.prisma.event.findUnique({
+        where: { id: eventId },
+      });
+
+      // If event does not exist, throw NotFoundException
+      if (!event) {
+        throw new NotFoundException(
+          `Event with id: ${eventId} not found`,
+        );
+      }
+
+      // Delete the event and return the deleted event data
+      const deletedEvent = await this.prisma.event.delete({
+        where: { id: eventId },
+      });
+      return {
+        message: `Event with id: ${eventId} deleted successfully`,
+        deletedEvent,
+      };
+    } catch (error) {
+      // Handle Prisma client error and provide a meaningful message
+      if (
+        error instanceof
+        Prisma.PrismaClientKnownRequestError
+      ) {
+        throw new Error(`Prisma error: ${error.message}`);
+      }
+      throw new ForbiddenException(
+        `Failed to delete event: ${error.message || error}`,
+      );
     }
   }
 }

@@ -20,38 +20,43 @@ model User {
   phoneNumber String
   bloodGroup  String
   createdAt   DateTime @default(now())
+
+  Payment Payment?
 }
 
 model Event {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  name        String     @unique
-  shortName   String
-  imageUrl    String
-  description String
-  date        String
-  location    String
-  createdBy   String
-  createdAt   DateTime   @default(now())
-  updatedBy   String?
-  updatedAt   DateTime?  @updatedAt
-  resultLink  String?
-  eventData   EventData?
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String    @unique
+  shortName      String
+  eventImageUrl  String
+  description    String
+  date           String
+  location       String
+  middleImageUrl String
+  heading        String
+  text           String[]
+  bottomImageUrl String
+  bottomHeading  String
+  bottomText     String
+  warning        String
+  createdBy      String
+  createdAt      DateTime  @default(now())
+  updatedBy      String?
+  updatedAt      DateTime? @updatedAt
+  resultLink     String?
 }
 
-model EventData {
-  id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  raceImageUrl String
-  eventId      String  @unique @db.ObjectId
-  event        Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  details1     String
-  details2     String?
-  details3     String?
-  details4     String?
-  direction1   String
-  direction2   String?
-  direction3   String?
-  direction4   String?
-}
+//model EventData {
+//   id             String   @id @default(auto()) @map("_id") @db.ObjectId
+//   eventId        String   @unique @db.ObjectId
+//   imageUrl       String
+//   heading        String
+//   text           String[]
+//   bottomImageUrl String
+//   bottomHeading  String
+//   bottomText     String
+//   warning        String
+// }
 
 model Admin {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -106,27 +111,24 @@ model OurFeatures {
 }
 
 model RecentActivities {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl  String    @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String   @unique
   createdBy String
-  createdAt DateTime  @default(now())
-  updatedBy String?
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model AboutUs {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl  String    @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String   @unique
   createdBy String
-  createdAt DateTime  @default(now())
-  updatedBy String?
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model Payment {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String
-  createdAt DateTime @default(now())
+  userId    String   @unique @db.ObjectId
   amount    String
   success   Boolean
+  createdAt DateTime @default(now())
+  createdBy User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,45 +1,27 @@
-import { OurFeatures } from './../../node_modules/.prisma/client/index.d';
 import {
-  IsDate,
   IsNotEmpty,
   IsOptional,
   IsString,
-  IsUrl,
 } from 'class-validator';
 
 export class OurFeaturesDto {
-  @IsUrl()
-  @IsNotEmpty()
-  imageUrl: string;
+  file: Express.Multer.File;
   @IsString()
   @IsNotEmpty()
   title: string;
   @IsString()
   @IsNotEmpty()
   description: string;
-  @IsString()
-  @IsOptional()
-  createdBy: string;
-  @IsDate()
-  @IsOptional()
-  createdAt: string;
 }
 export class UpdateOurFeaturesDto {
-  @IsUrl()
   @IsOptional()
-  imageUrl: string;
+  file: Express.Multer.File;
   @IsString()
   @IsOptional()
   title: string;
   @IsString()
   @IsOptional()
   description: string;
-  @IsString()
-  @IsOptional()
-  updatedBy: string;
-  @IsDate()
-  @IsOptional()
-  updatedAt: Date;
 }
 
 export class OurFeaturesResponse {

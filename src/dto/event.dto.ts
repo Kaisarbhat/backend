@@ -1,10 +1,9 @@
-import { Type } from 'class-transformer';
 import {
   IsString,
   IsOptional,
   IsNotEmpty,
   IsUrl,
-  ValidateNested,
+  IsArray,
 } from 'class-validator';
 
 // Event DTOs
@@ -17,9 +16,7 @@ export class CreateEventDto {
   @IsNotEmpty()
   shortName: string;
 
-  @IsUrl()
-  @IsNotEmpty()
-  imageUrl: string;
+  file1: Express.Multer.File;
 
   @IsString()
   @IsNotEmpty()
@@ -28,18 +25,34 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   date: string;
+  @IsUrl()
+  @IsNotEmpty()
+  location: string;
+
+  //image file
+  file2: Express.Multer.File;
 
   @IsString()
   @IsNotEmpty()
-  location: string;
-  @IsString()
-  @IsOptional()
-  createdBy: string;
-  @IsString()
-  @IsOptional()
-  createdAt: string;
-}
+  heading: string;
 
+  // @IsArray()
+  @IsNotEmpty()
+  text: string[];
+  //image file
+  file3: Express.Multer.File;
+
+  @IsString()
+  @IsNotEmpty()
+  bottomHeading: string;
+  @IsString()
+  @IsNotEmpty()
+  bottomText: string;
+
+  @IsString()
+  @IsNotEmpty()
+  warning: string;
+}
 export class UpdateEventDto {
   @IsString()
   @IsOptional()
@@ -47,10 +60,10 @@ export class UpdateEventDto {
 
   @IsString()
   @IsOptional()
-  shortName: string;
-  @IsString()
+  shortName?: string;
+
   @IsOptional()
-  imageUrl?: string;
+  file?: Express.Multer.File;
 
   @IsString()
   @IsOptional()
@@ -60,148 +73,36 @@ export class UpdateEventDto {
   @IsOptional()
   date?: string;
 
-  @IsString()
+  @IsUrl()
   @IsOptional()
   location?: string;
 
-  @IsString()
-  @IsOptional()
-  updatedBy: string;
-  @IsString()
-  @IsOptional()
-  updatedAt: string;
-}
-
-export class EventResponseDto {
-  id: string;
-  name: string;
-  shortName: string;
-  imageUrl: string;
-  description: string;
-  date: string;
-  location: string;
-  eventData?: EventDataResponseDto;
-}
-
-// EventData DTOs
-export class CreateEventDataDto {
   @IsUrl()
-  @IsNotEmpty()
-  raceImageUrl: string;
+  @IsOptional()
+  resultLink?: string;
+
+  @IsOptional()
+  //image file
+  imageUrl?: Express.Multer.File;
 
   @IsString()
   @IsOptional()
-  eventId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  details1: string;
-
-  @IsString()
+  heading?: string;
+  @IsArray()
   @IsOptional()
-  details2?: string;
+  text?: string[];
+
+  //image file
+  bottomImageUrl?: Express.Multer.File;
 
   @IsString()
   @IsOptional()
-  details3?: string;
+  bottomHeading?: string;
+  @IsString()
+  @IsOptional()
+  bottomText?: string;
 
   @IsString()
   @IsOptional()
-  details4?: string;
-
-  @IsString()
-  @IsNotEmpty()
-  direction1: string;
-
-  @IsString()
-  @IsOptional()
-  direction2?: string;
-
-  @IsString()
-  @IsOptional()
-  direction3?: string;
-
-  @IsString()
-  @IsOptional()
-  direction4?: string;
-}
-
-export class UpdateEventDataDto {
-  @IsString()
-  @IsOptional()
-  raceImageUrl?: string;
-
-  @IsString()
-  @IsOptional()
-  details1?: string;
-
-  @IsString()
-  @IsOptional()
-  details2?: string;
-
-  @IsString()
-  @IsOptional()
-  details3?: string;
-
-  @IsString()
-  @IsOptional()
-  details4?: string;
-
-  @IsString()
-  @IsOptional()
-  direction1?: string;
-
-  @IsString()
-  @IsOptional()
-  direction2?: string;
-
-  @IsString()
-  @IsOptional()
-  direction3?: string;
-
-  @IsString()
-  @IsOptional()
-  direction4?: string;
-}
-
-export class EventDataResponseDto {
-  id: string;
-  raceImageUrl: string;
-  eventId: string;
-  details1: string;
-  details2?: string;
-  details3?: string;
-  details4?: string;
-  direction1: string;
-  direction2?: string;
-  direction3?: string;
-  direction4?: string;
-}
-export class EventResponseWithDataDto {
-  event: EventResponseDto;
-  eventData: EventDataResponseDto | null;
-}
-
-export class CreateEventWithDataDto {
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => CreateEventDto)
-  event: CreateEventDto;
-
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => CreateEventDataDto)
-  eventData: CreateEventDataDto;
-}
-
-export class UpdateEventWithDataDto {
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateEventDto)
-  event: UpdateEventDto;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateEventDataDto)
-  eventData: UpdateEventDataDto;
+  warning?: string;
 }

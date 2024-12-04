@@ -7,22 +7,11 @@ import {
 } from 'class-validator';
 
 export class RecentActivitiesDto {
-  @IsUrl()
-  @IsNotEmpty()
-  imageUrl: string;
-  @IsString()
-  @IsOptional()
-  createdBy: string;
-  @IsDate()
-  @IsOptional()
-  createdAt: Date;
+  file: Express.Multer.File;
 }
-
 export class RecentActivitiesDtoResponse {
   id: string;
   imageUrl: string;
   createdBy: string;
   createdAt: Date;
-  updatedBy?: string;
-  updatedAt?: Date;
 }

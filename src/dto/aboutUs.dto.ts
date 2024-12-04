@@ -1,21 +1,5 @@
-import {
-  IsDate,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUrl,
-} from 'class-validator';
-
 export class AboutUsDto {
-  @IsUrl()
-  @IsNotEmpty()
-  imageUrl: string;
-  @IsString()
-  @IsOptional()
-  createdBy: string;
-  @IsDate()
-  @IsOptional()
-  createdAt: Date;
+  file: Express.Multer.File;
 }
 
 export class AboutUsDtoResponse {
@@ -23,6 +7,4 @@ export class AboutUsDtoResponse {
   imageUrl: string;
   createdBy: string;
   createdAt: Date;
-  updatedBy?: string;
-  updatedAt?: Date;
 }
