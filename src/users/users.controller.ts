@@ -17,11 +17,6 @@ export class UsersController {
   joinus(@Body() userDto: UserDto) {
     return this.userService.joinus(userDto);
   }
-  //send email to joined users
-  @Get('joinus')
-  sendEmail() {
-    return this.userService.sendMail();
-  }
   @Post('register/:id')
   registerForEvent(
     @Param('id') id: string,

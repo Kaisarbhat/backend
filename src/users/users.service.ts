@@ -1,3 +1,4 @@
+import { EmailService } from './email.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -13,6 +14,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private mailerService: MailerService,
+    private emailService: EmailService,
   ) {}
   //adding users to club
   async joinus(userDto: UserDto): Promise<UserResponseDto> {
@@ -20,12 +22,11 @@ export class UsersService {
       const user = await this.prisma.user.create({
         data: userDto,
       });
-      const email = this.mailerService.sendMail({
-        to: `${userDto.email}`,
-        from: 'ctc@gmail.com',
-        subject: 'Email testing',
-        html: '<b>Congratulation for joining  CTC</b>',
-      });
+      //sending mail after successfull registration
+      await this.emailService.sendRegistrationConfirmation(
+        userDto.email,
+        userDto.name,
+      );
       return user;
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
@@ -39,12 +40,17 @@ export class UsersService {
   }
 
   //sending email to joined users
-  async sendMail() {
+  async sendEmail(
+    to: string,
+    from: string,
+    subject: string,
+    html: string,
+  ) {
     return await this.mailerService.sendMail({
-      to: 'kaisar@inbox.mailtrap.io',
-      from: 'kaisra@gmail.com',
-      subject: 'Email testing',
-      html: '<b>Email send </b>',
+      to: to,
+      from: from,
+      subject: subject,
+      html: html,
     });
   }
 
@@ -64,6 +70,7 @@ export class UsersService {
               data: { ...eventRegistrationDto, eventId },
             });
           if (eventRegistrationDto.joinClub) {
+            userExists = false;
             const name =
               eventRegistrationDto.firstName +
               ' ' +
@@ -77,7 +84,6 @@ export class UsersService {
                 bloodGroup: eventRegistrationDto.bloodGroup,
               },
             });
-            userExists = false;
             //return user with join club
             return {
               ...registerUserForEvent,
