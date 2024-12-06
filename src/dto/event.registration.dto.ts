@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
 } from 'class-validator';
 
 export class EventRegistrationDto {
@@ -58,37 +59,37 @@ export class EventRegistrationDto {
   @IsString()
   @IsNotEmpty()
   emergencyContactNumber: string;
-  @IsBoolean()
+  @IsString()
   @IsNotEmpty()
-  cardiovascularDisease: boolean;
-  @IsBoolean()
+  cardiovascularDisease: string;
+  @IsString()
   @IsNotEmpty()
-  medicalSupervision: boolean;
-  @IsBoolean()
+  medicalSupervision: string;
+  @IsString()
   @IsNotEmpty()
-  pregnancyRisk: boolean;
-  @IsBoolean()
+  pregnancyRisk: string;
+  @IsString()
   @IsNotEmpty()
-  asthma: boolean;
-  @IsBoolean()
+  asthma: string;
+  @IsString()
   @IsNotEmpty()
-  dizziness: boolean;
-  @IsBoolean()
+  dizziness: string;
+  @IsString()
   @IsNotEmpty()
-  chestPain: boolean;
-  @IsBoolean()
+  chestPain: string;
+  @IsString()
   @IsNotEmpty()
-  chronicIllness: boolean;
+  chronicIllness: string;
   @IsOptional()
   @IsString()
   otherMedicalConditions?: string;
-  @IsOptional()
-  @IsString()
+  @IsUrl()
+  @IsNotEmpty()
   timingCertificates: string;
   @IsBoolean()
   @IsNotEmpty()
   waiverAcknowledgement: boolean;
   @IsBoolean()
-  @IsNotEmpty()
+  @IsOptional()
   joinClub: boolean;
 }

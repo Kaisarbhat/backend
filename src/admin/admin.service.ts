@@ -1,10 +1,4 @@
-import { ImageUri } from './../../node_modules/aws-sdk/clients/emrserverless.d';
-import { SecretAccessKey } from './../../node_modules/aws-sdk/clients/codepipeline.d';
-import { MimeType } from './../../node_modules/aws-sdk/clients/bedrockagentruntime.d';
-import { CreateBucketAccessKeyResult } from './../../node_modules/aws-sdk/clients/lightsail.d';
-import { ContentDisposition } from './../../node_modules/aws-sdk/clients/s3.d';
-import { Key } from './../../node_modules/aws-sdk/clients/appflow.d';
-import { Bucket } from './../../node_modules/aws-sdk/clients/cloudsearchdomain.d';
+import { S3Service } from 'src/admin/upload.to.s3';
 import {
   AboutUsDto,
   AboutUsDtoResponse,
@@ -26,20 +20,13 @@ import {
 } from '@nestjs/common';
 import { OurFeaturesResponse } from 'src/dto/our.features.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import * as AWS from 'aws-sdk';
-import { ConfigService } from '@nestjs/config';
+import AWS from 'aws-sdk';
 @Injectable()
 export class AdminService {
   constructor(
     private prisma: PrismaService,
-    private config: ConfigService,
+    private readonly s3Service: S3Service,
   ) {}
-  //AWS Details and connecting to s3 bucket
-  s3 = new AWS.S3({
-    accessKeyId: this.config.get('ACCESS_KEY_ID'),
-    secretAccessKey: this.config.get('SECRET_ACCESS_KEY'),
-  });
-  AWS_S3_BUCKET = 'chennaitrailclub1';
   //FEATURES
   //getting all the club members from the database
   async getAllUsers() {
@@ -61,7 +48,8 @@ export class AdminService {
     ourFeaturesDto: OurFeaturesDto,
   ): Promise<OurFeaturesResponse> {
     try {
-      const imageUrl = await this.uploadFile(file);
+      const imageUrl =
+        await this.s3Service.uploadFile(file);
       return await this.prisma.ourFeatures.create({
         data: {
           ...ourFeaturesDto,
@@ -86,7 +74,7 @@ export class AdminService {
     try {
       return await this.prisma.ourFeatures.findMany({
         orderBy: {
-          updatedAt: 'desc',
+          createdAt: 'asc',
         },
       });
     } catch (error) {
@@ -104,7 +92,7 @@ export class AdminService {
     try {
       let imageUrl: string;
       if (file) {
-        imageUrl = await this.uploadFile(file);
+        imageUrl = await this.s3Service.uploadFile(file);
       }
       return await this.prisma.ourFeatures.update({
         where: { id: featureId },
@@ -153,7 +141,8 @@ export class AdminService {
     file: Express.Multer.File,
   ): Promise<RecentActivitiesDtoResponse> {
     try {
-      const imageUrl = await this.uploadFile(file);
+      const imageUrl =
+        await this.s3Service.uploadFile(file);
       return await this.prisma.recentActivities.create({
         data: {
           ...recentActivitiesDto,
@@ -209,7 +198,8 @@ export class AdminService {
     file: Express.Multer.File,
   ): Promise<AboutUsDtoResponse> {
     try {
-      const ImageUrl = await this.uploadFile(file);
+      const ImageUrl =
+        await this.s3Service.uploadFile(file);
       return await this.prisma.aboutUs.create({
         data: {
           ...aboutUsDto,
@@ -252,40 +242,6 @@ export class AdminService {
           `The image does not exist`,
         );
       }
-      throw error;
-    }
-  }
-
-  async uploadFile(file) {
-    const { originalname } = file;
-
-    return await this.upload_To_S3(
-      file.buffer,
-      this.AWS_S3_BUCKET,
-      originalname,
-      file.mimetype,
-    );
-  }
-
-  //uploading data to aws-s3-bucket
-  async upload_To_S3(file, bucket, name, mimetype) {
-    const params = {
-      Bucket: bucket,
-      Key: String(name),
-      Body: file,
-      ACL: 'public-read',
-      ContentType: mimetype,
-      ContentDisposition: 'inline',
-      CreateBucketAccessKeyResult: {
-        LocationConstraint: 'ap-south-1',
-      },
-    };
-    try {
-      const s3Response = await this.s3
-        .upload(params)
-        .promise();
-      return s3Response.Location;
-    } catch (error) {
       throw error;
     }
   }

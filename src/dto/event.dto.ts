@@ -16,7 +16,9 @@ export class CreateEventDto {
   @IsNotEmpty()
   shortName: string;
 
-  file1: Express.Multer.File;
+  bannerOne: Express.Multer.File;
+  bannerTwo: Express.Multer.File;
+  bannerThree: Express.Multer.File;
 
   @IsString()
   @IsNotEmpty()
@@ -25,12 +27,16 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   date: string;
-  @IsUrl()
+
+  @IsString()
   @IsNotEmpty()
   location: string;
+  @IsUrl()
+  @IsNotEmpty()
+  locationUrl: string;
 
   //image file
-  file2: Express.Multer.File;
+  middleImage: Express.Multer.File;
 
   @IsString()
   @IsNotEmpty()
@@ -40,7 +46,7 @@ export class CreateEventDto {
   @IsNotEmpty()
   text: string[];
   //image file
-  file3: Express.Multer.File;
+  bottomImage: Express.Multer.File;
 
   @IsString()
   @IsNotEmpty()
@@ -63,7 +69,11 @@ export class UpdateEventDto {
   shortName?: string;
 
   @IsOptional()
-  file?: Express.Multer.File;
+  bannerOne?: Express.Multer.File;
+  @IsOptional()
+  bannerTwo?: Express.Multer.File;
+  @IsOptional()
+  bannerThree?: Express.Multer.File;
 
   @IsString()
   @IsOptional()
@@ -73,17 +83,20 @@ export class UpdateEventDto {
   @IsOptional()
   date?: string;
 
-  @IsUrl()
+  @IsString()
   @IsOptional()
   location?: string;
 
+  @IsUrl()
+  @IsOptional()
+  locationUrl: string;
   @IsUrl()
   @IsOptional()
   resultLink?: string;
 
   @IsOptional()
   //image file
-  imageUrl?: Express.Multer.File;
+  middleImage?: Express.Multer.File;
 
   @IsString()
   @IsOptional()
@@ -93,7 +106,7 @@ export class UpdateEventDto {
   text?: string[];
 
   //image file
-  bottomImageUrl?: Express.Multer.File;
+  bottomImage?: Express.Multer.File;
 
   @IsString()
   @IsOptional()

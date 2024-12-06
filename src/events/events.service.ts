@@ -1,27 +1,23 @@
+// import { S3Service } from './../admin/upload.to.s3';
 import { AdminService } from './../admin/admin.service';
-import { EventRegistrationDto } from './../dto/event.registration.dto';
 import {
   CreateEventDto,
   UpdateEventDto,
 } from './../dto/event.dto';
 import {
-  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prismaService';
-import {
-  PrismaClientKnownRequestError,
-  PrismaClientValidationError,
-} from '@prisma/client/runtime/library';
 import { Admin, Prisma } from '@prisma/client';
+import { S3Service } from 'src/admin/upload.to.s3';
 
 @Injectable()
 export class EventsService {
   constructor(
     private prisma: PrismaService,
-    private adminService: AdminService,
+    private s3Service: S3Service,
   ) {}
 
   //creating the event
@@ -31,19 +27,23 @@ export class EventsService {
       file1?: Express.Multer.File[];
       file2?: Express.Multer.File[];
       file3?: Express.Multer.File[];
+      file4?: Express.Multer.File[];
+      file5?: Express.Multer.File[];
     },
     createEventDto: CreateEventDto,
   ) {
     try {
       // Destructuring for easy access
-      const [file1, file2, file3] = [
+      const [file1, file2, file3, file4, file5] = [
         files.file1?.[0],
         files.file2?.[0],
         files.file3?.[0],
+        files.file4?.[0],
+        files.file5?.[0],
       ];
 
       // If any required files are missing, throw an error
-      if (!file1 || !file2 || !file3) {
+      if (!file1 || !file2 || !file3 || !file4 || !file5) {
         throw new Error(
           'All files (file1, file2, file3) must be provided.',
         );
@@ -51,13 +51,17 @@ export class EventsService {
 
       // Promise.all to upload files in parallel for better performance
       const [
-        eventImageUrl,
+        eventBannerOne,
+        eventBannerTwo,
+        eventBannerThree,
         middleImageUrl,
         bottomImageUrl,
       ] = await Promise.all([
-        this.adminService.uploadFile(file1),
-        this.adminService.uploadFile(file2),
-        this.adminService.uploadFile(file3),
+        this.s3Service.uploadFile(file1),
+        this.s3Service.uploadFile(file2),
+        this.s3Service.uploadFile(file3),
+        this.s3Service.uploadFile(file4),
+        this.s3Service.uploadFile(file5),
       ]);
 
       // Create the event and save to the database
@@ -65,7 +69,9 @@ export class EventsService {
         data: {
           ...createEventDto,
           createdBy: admin.username,
-          eventImageUrl,
+          eventBannerOne,
+          eventBannerTwo,
+          eventBannerThree,
           middleImageUrl,
           bottomImageUrl,
         },
@@ -165,15 +171,19 @@ export class EventsService {
       file1?: Express.Multer.File[];
       file2?: Express.Multer.File[];
       file3?: Express.Multer.File[];
+      file4?: Express.Multer.File[];
+      file5?: Express.Multer.File[];
     },
     updateEventDto: UpdateEventDto,
   ) {
     try {
       // Destructuring files for easy access
-      const [file1, file2, file3] = [
+      const [file1, file2, file3, file4, file5] = [
         files.file1?.[0],
         files.file2?.[0],
         files.file3?.[0],
+        files.file4?.[0],
+        files.file5?.[0],
       ];
 
       // Fetch the event to be updated
@@ -196,20 +206,27 @@ export class EventsService {
 
       // Handle file uploads if provided
       if (file1) {
-        updatedData.eventImageUrl =
-          await this.adminService.uploadFile(file1);
+        updatedData.eventBannerOne =
+          await this.s3Service.uploadFile(file1);
       }
 
       if (file2) {
-        updatedData.middleImageUrl =
-          await this.adminService.uploadFile(file2);
+        updatedData.eventBannerTwo =
+          await this.s3Service.uploadFile(file2);
       }
 
       if (file3) {
-        updatedData.bottomImageUrl =
-          await this.adminService.uploadFile(file3);
+        updatedData.eventBannerThree =
+          await this.s3Service.uploadFile(file3);
       }
-
+      if (file4) {
+        updatedData.middleImageUrl =
+          await this.s3Service.uploadFile(file3);
+      }
+      if (file5) {
+        updatedData.bottomImageUrl =
+          await this.s3Service.uploadFile(file3);
+      }
       // Update the event with the prepared data
       return await this.prisma.event.update({
         where: { id: eventId },

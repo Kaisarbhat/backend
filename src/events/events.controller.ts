@@ -6,7 +6,6 @@ import {
   Param,
   Post,
   Put,
-  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -17,24 +16,22 @@ import {
   UpdateEventDto,
 } from 'src/dto/event.dto';
 import { EventsService } from './events.service';
-import { EventRegistrationDto } from 'src/dto/event.registration.dto';
 import { GetUser } from 'src/auth/get-user';
 import { Admin } from '@prisma/client';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
-@UseGuards(JwtGuard)
 @Controller('events')
 export class EventsController {
   constructor(private eventService: EventsService) {}
+  @UseGuards(JwtGuard)
   @Post('createEventWithData')
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'file1', maxCount: 1 },
       { name: 'file2', maxCount: 1 },
       { name: 'file3', maxCount: 1 },
+      { name: 'file4', maxCount: 1 },
+      { name: 'file5', maxCount: 1 },
     ]),
   )
   async createEventWithData(
@@ -44,6 +41,8 @@ export class EventsController {
       file1?: Express.Multer.File[];
       file2?: Express.Multer.File[];
       file3?: Express.Multer.File[];
+      file4?: Express.Multer.File[];
+      file5?: Express.Multer.File[];
     },
     @Body() createEventDto: CreateEventDto,
   ) {
@@ -75,12 +74,15 @@ export class EventsController {
     return this.eventService.getPastEvents();
   }
   //update event
+  @UseGuards(JwtGuard)
   @Put('update/:id')
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'file1', maxCount: 1 },
       { name: 'file2', maxCount: 1 },
       { name: 'file3', maxCount: 1 },
+      { name: 'file4', maxCount: 1 },
+      { name: 'file5', maxCount: 1 },
     ]),
   )
   updateEvent(
@@ -92,6 +94,8 @@ export class EventsController {
       file1?: Express.Multer.File[];
       file2?: Express.Multer.File[];
       file3?: Express.Multer.File[];
+      file4?: Express.Multer.File[];
+      file5?: Express.Multer.File[];
     },
   ) {
     return this.eventService.updateEvent(
@@ -101,7 +105,7 @@ export class EventsController {
       updateEventDto,
     );
   }
-
+  @UseGuards(JwtGuard)
   @Delete('delete/:id')
   deleteEvent(@Param('id') id: string) {
     return this.eventService.deleteEvent(id);
