@@ -20,7 +20,6 @@ import {
 } from '@nestjs/common';
 import { OurFeaturesResponse } from 'src/dto/our.features.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import AWS from 'aws-sdk';
 @Injectable()
 export class AdminService {
   constructor(

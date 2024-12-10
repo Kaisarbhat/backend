@@ -8,14 +8,13 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  email       String   @unique
+  email       String    @unique
   phoneNumber String
   bloodGroup  String
-  createdAt   DateTime @default(now())
-
-  orders Orders?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
 }
 
 model Event {
@@ -109,13 +108,51 @@ model AboutUs {
   createdAt DateTime @default(now())
 }
 
-model Orders {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @unique @db.ObjectId
-  amount    Float
-  currency  String
-  receipt   String
-  status    String
-  createdAt DateTime @default(now())
-  createdBy User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Order {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  razorpayOrderId String      @unique
+  amount          Float
+  currency        String      @default("INR")
+  status          OrderStatus @default(CREATED)
+  receipt         String?
+  notes           Json?
+  userId          String?     @db.ObjectId
+  payment         Payment?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Payment {
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  razorpayPaymentId String         @unique
+  amount            Float
+  currency          String
+  method            PaymentMethod?
+  email             String?
+  contact           String?
+  paymentDetails    Json?
+  errorCode         String?
+  errorDescription  String?
+  order             Order          @relation(fields: [orderId], references: [id])
+  orderId           String         @unique @db.ObjectId
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+enum OrderStatus {
+  CREATED
+  ATTEMPTED
+  PAID
+  FAILED
+  EXPIRED
+}
+
+enum PaymentMethod {
+  CARD
+  NET_BANKING
+  WALLET
+  UPI
 }
