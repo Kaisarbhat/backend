@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsDate,
   IsEmail,
   IsNotEmpty,
@@ -26,6 +27,9 @@ export class UserDto {
     message: 'Blood Group Expected',
   })
   bloodGroup: string;
+  @IsNotEmpty()
+  @IsBoolean()
+  terms: boolean;
   @IsDate()
   @IsOptional()
   createdAt: Date;

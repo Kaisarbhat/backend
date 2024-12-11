@@ -1,14 +1,13 @@
-import {
-  OrderDto,
-  PaymentVerificationDto,
-} from 'src/dto/order.dto';
+import { OrderDto } from 'src/dto/order.dto';
 import { PaymentService } from './payment.service';
 import {
   Body,
   Controller,
   Post,
   Get,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 
 @Controller('payment')
 export class PaymentController {
@@ -23,12 +22,9 @@ export class PaymentController {
     return this.paymentService.createOrder(orderDto);
   }
   @Post('success')
-  paymentSuccess(
-    @Body() paymentVerificationDto: PaymentVerificationDto,
-  ) {
-    return this.paymentService.verifyOrder(
-      paymentVerificationDto,
-    );
+  paymentSuccess(@Req() req: Request) {
+    console.log(req.body);
+    return this.paymentService.verifyOrder(req.body);
   }
 
   @Get('')

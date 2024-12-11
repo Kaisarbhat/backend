@@ -13,6 +13,7 @@ model User {
   email       String    @unique
   phoneNumber String
   bloodGroup  String
+  terms       Boolean
   createdAt   DateTime  @default(now())
   updatedAt   DateTime? @updatedAt
 }
@@ -117,7 +118,6 @@ model Order {
   receipt         String?
   notes           Json?
   userId          String?     @db.ObjectId
-  payment         Payment?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -130,16 +130,15 @@ model Payment {
   razorpayPaymentId String         @unique
   amount            Float
   currency          String
+  status            String
   method            PaymentMethod?
-  email             String?
-  contact           String?
+  email             String
+  contact           String
   paymentDetails    Json?
   errorCode         String?
   errorDescription  String?
-  order             Order          @relation(fields: [orderId], references: [id])
-  orderId           String         @unique @db.ObjectId
+  orderId           String
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
 }
 
 enum OrderStatus {

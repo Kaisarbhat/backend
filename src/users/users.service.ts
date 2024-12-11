@@ -91,6 +91,7 @@ export class UsersService {
         email: dto.email,
         phoneNumber: dto.mobile,
         bloodGroup: dto.bloodGroup,
+        terms: true,
       },
     });
   }
