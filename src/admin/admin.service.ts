@@ -1,12 +1,4 @@
 import { S3Service } from 'src/admin/upload.to.s3';
-import {
-  AboutUsDto,
-  AboutUsDtoResponse,
-} from './../dto/aboutUs.dto';
-import {
-  RecentActivitiesDto,
-  RecentActivitiesDtoResponse,
-} from 'src/dto/recentActivities.dto';
 import { Admin } from './../../node_modules/.prisma/client/index.d';
 import {
   OurFeaturesDto,
@@ -14,19 +6,21 @@ import {
 } from './../dto/our.features.dto';
 import { PrismaService } from 'src/prisma/prismaService';
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { OurFeaturesResponse } from 'src/dto/our.features.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+
 @Injectable()
 export class AdminService {
   constructor(
     private prisma: PrismaService,
     private readonly s3Service: S3Service,
   ) {}
-  //FEATURES
+
   //getting all the club members from the database
   async getAllUsers() {
     try {
@@ -40,6 +34,77 @@ export class AdminService {
     }
   }
 
+  //Hero Image
+  async addHeroImage(
+    admin: Admin,
+    image: Express.Multer.File,
+  ) {
+    try {
+      const existingImage =
+        await this.prisma.heroImage.findFirst();
+      if (existingImage)
+        throw new BadRequestException(
+          'Can have only one Hero Image',
+        );
+      const imageUrl =
+        await this.s3Service.uploadFile(image);
+      return await this.prisma.heroImage.create({
+        data: {
+          imageUrl: imageUrl,
+          createdBy: admin.username,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'Image Already exists',
+        );
+      }
+      throw error;
+    }
+  }
+  //update heroImage
+  async updateHeroImage(
+    admin: Admin,
+    image: Express.Multer.File,
+  ) {
+    try {
+      const existingImage =
+        await this.prisma.heroImage.findFirst();
+      const { createdBy, createdAt } = existingImage;
+      const imageUrl =
+        await this.s3Service.uploadFile(image);
+      if (imageUrl === existingImage.imageUrl) {
+        throw new BadRequestException(
+          'You are uploading the same image',
+        );
+      }
+      return await this.prisma.heroImage.update({
+        where: { id: existingImage.id },
+        data: {
+          createdBy: createdBy,
+          createdAt: createdAt,
+          imageUrl: imageUrl,
+          updatedBy: admin.username,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'Image Already exists',
+        );
+      }
+      throw error;
+    }
+  }
+  //get heroimage
+  async getHeroImage() {
+    try {
+      return this.prisma.heroImage.findFirst();
+    } catch (error) {
+      throw error;
+    }
+  }
   //adding ourFeatures to database
   async addOurFeatures(
     file: Express.Multer.File,
@@ -136,15 +201,13 @@ export class AdminService {
   //adding recentactivities images to database
   async addRecentActivities(
     admin: Admin,
-    recentActivitiesDto: RecentActivitiesDto,
     file: Express.Multer.File,
-  ): Promise<RecentActivitiesDtoResponse> {
+  ) {
     try {
       const imageUrl =
         await this.s3Service.uploadFile(file);
       return await this.prisma.recentActivities.create({
         data: {
-          ...recentActivitiesDto,
           imageUrl: imageUrl,
           createdBy: admin.username,
         },
@@ -160,13 +223,11 @@ export class AdminService {
   }
 
   //getting all recentActivities images from database
-  async getAllRecentActivities(): Promise<
-    RecentActivitiesDtoResponse[]
-  > {
+  async getAllRecentActivities() {
     try {
       return await this.prisma.recentActivities.findMany({
         orderBy: {
-          createdAt: 'desc',
+          createdAt: 'asc',
         },
       });
     } catch (error) {
@@ -177,15 +238,78 @@ export class AdminService {
   //delete recentactivity images
   async deleteRecentActivity(id: string) {
     try {
+      const record =
+        await this.prisma.recentActivities.findUnique({
+          where: { id: id },
+        });
+      if (!record) {
+        throw new BadRequestException(
+          'The image does not exist',
+        );
+      }
       return await this.prisma.recentActivities.delete({
         where: { id: id },
       });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        throw new NotFoundException(
-          `The image does not exist`,
+      throw error;
+    }
+  }
+
+  //recentactivity mobile
+  async addRecentActivityMobile(
+    admin: Admin,
+    image: Express.Multer.File,
+  ) {
+    try {
+      const imageUrl =
+        await this.s3Service.uploadFile(image);
+      return await this.prisma.recentActivitiesMobile.create(
+        {
+          data: {
+            imageUrl: imageUrl,
+            createdBy: admin.username,
+          },
+        },
+      );
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'File Already Exists',
         );
       }
+      throw error;
+    }
+  }
+  //delete
+  async deleteRecentActivityMobile(id: string) {
+    try {
+      const record =
+        await this.prisma.recentActivitiesMobile.findUnique(
+          {
+            where: { id: id },
+          },
+        );
+      if (!record) {
+        throw new BadRequestException(
+          'The image does not exist',
+        );
+      }
+      return this.prisma.recentActivitiesMobile.delete({
+        where: { id: id },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+  //get All RecentActivities Mobile
+  async getAllRecentActicitiesMobile() {
+    try {
+      return this.prisma.recentActivitiesMobile.findMany({
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+    } catch (error) {
       throw error;
     }
   }
@@ -193,15 +317,13 @@ export class AdminService {
   //adding aboutUs images to db
   async addAboutUs(
     admin: Admin,
-    aboutUsDto: AboutUsDto,
     file: Express.Multer.File,
-  ): Promise<AboutUsDtoResponse> {
+  ) {
     try {
       const ImageUrl =
         await this.s3Service.uploadFile(file);
       return await this.prisma.aboutUs.create({
         data: {
-          ...aboutUsDto,
           imageUrl: ImageUrl,
           createdBy: admin.username,
         },
@@ -217,11 +339,11 @@ export class AdminService {
   }
 
   //get all aboutus images from db
-  async getAllAboutUs(): Promise<AboutUsDtoResponse[]> {
+  async getAllAboutUs() {
     try {
       return await this.prisma.aboutUs.findMany({
         orderBy: {
-          createdAt: 'desc',
+          createdAt: 'asc',
         },
       });
     } catch (error) {
@@ -232,15 +354,90 @@ export class AdminService {
   //delete images in aboutus
   async deleteAboutUs(id: string) {
     try {
+      const record = await this.prisma.aboutUs.findUnique({
+        where: { id: id },
+      });
+      if (!record) {
+        throw new BadRequestException(
+          'The image does not exist',
+        );
+      }
       return await this.prisma.aboutUs.delete({
         where: { id: id },
       });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        throw new NotFoundException(
-          `The image does not exist`,
+      throw error;
+    }
+  }
+
+  //about Us Hero Image
+  async addAboutUsHeroImage(
+    admin: Admin,
+    image: Express.Multer.File,
+  ) {
+    try {
+      const existingImage =
+        await this.prisma.aboutUsHeroImage.findFirst();
+      if (existingImage)
+        throw new BadRequestException(
+          'Can have only one Hero Image',
+        );
+      const imageUrl =
+        await this.s3Service.uploadFile(image);
+      return await this.prisma.aboutUsHeroImage.create({
+        data: {
+          imageUrl: imageUrl,
+          createdBy: admin.username,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'Image Already exists',
         );
       }
+      throw error;
+    }
+  }
+  //update heroImage
+  async updateAboutUsHeroImage(
+    admin: Admin,
+    image: Express.Multer.File,
+  ) {
+    try {
+      const existingImage =
+        await this.prisma.aboutUsHeroImage.findFirst();
+      const { createdBy, createdAt } = existingImage;
+      const imageUrl =
+        await this.s3Service.uploadFile(image);
+      if (imageUrl === existingImage.imageUrl) {
+        throw new BadRequestException(
+          'You are uploading the same image',
+        );
+      }
+      return await this.prisma.aboutUsHeroImage.update({
+        where: { id: existingImage.id },
+        data: {
+          createdBy: createdBy,
+          createdAt: createdAt,
+          imageUrl: imageUrl,
+          updatedBy: admin.username,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'Image Already exists',
+        );
+      }
+      throw error;
+    }
+  }
+  //get heroimage
+  async getAboutUsHeroImage() {
+    try {
+      return this.prisma.aboutUsHeroImage.findFirst();
+    } catch (error) {
       throw error;
     }
   }

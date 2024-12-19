@@ -102,11 +102,27 @@ model RecentActivities {
   createdAt DateTime @default(now())
 }
 
+model RecentActivitiesMobile {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String   @unique
+  createdBy String
+  createdAt DateTime @default(now())
+}
+
 model AboutUs {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   imageUrl  String   @unique
   createdBy String
   createdAt DateTime @default(now())
+}
+
+model AboutUsHeroImage {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
 }
 
 model Order {
@@ -139,6 +155,15 @@ model Payment {
   errorDescription  String?
   orderId           String
   createdAt         DateTime       @default(now())
+}
+
+model HeroImage {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
 }
 
 enum OrderStatus {

@@ -1,5 +1,4 @@
 // import { S3Service } from './../admin/upload.to.s3';
-import { AdminService } from './../admin/admin.service';
 import {
   CreateEventDto,
   UpdateEventDto,
@@ -276,6 +275,18 @@ export class EventsService {
       throw new ForbiddenException(
         `Failed to delete event: ${error.message || error}`,
       );
+    }
+  }
+  //returning the most recent event
+  async getRecentEvent() {
+    try {
+      return await this.prisma.event.findFirst({
+        orderBy: {
+          date: 'desc',
+        },
+      });
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -110,4 +110,9 @@ export class EventsController {
   deleteEvent(@Param('id') id: string) {
     return this.eventService.deleteEvent(id);
   }
+
+  @Get('recentevent')
+  getRecentEvent() {
+    return this.eventService.getRecentEvent();
+  }
 }

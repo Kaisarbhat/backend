@@ -18,8 +18,6 @@ import {
 } from '@nestjs/common';
 import { GetUser } from 'src/auth/get-user';
 import { Admin } from '@prisma/client';
-import { RecentActivitiesDto } from 'src/dto/recentActivities.dto';
-import { AboutUsDto } from 'src/dto/aboutUs.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('adminservices')
@@ -31,6 +29,33 @@ export class AdminController {
   @Get('allusers')
   getAllUsers() {
     return this.adminService.getAllUsers();
+  }
+  //HERO IMAGE
+  //add Hero Image
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('heroimage')
+  addHeroImage(
+    @GetUser() admin: Admin,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.adminService.addHeroImage(admin, image);
+  }
+
+  //update heroimage
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Put('heroimage')
+  updateHeroImage(
+    @GetUser() admin: Admin,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.adminService.updateHeroImage(admin, image);
+  }
+  //getHeroImage
+  @Get('heroimage')
+  getHeroImage() {
+    return this.adminService.getHeroImage();
   }
 
   //handler for adding Our Features
@@ -86,12 +111,10 @@ export class AdminController {
   @UseInterceptors(FileInterceptor('file'))
   addrecentActivity(
     @GetUser() admin: Admin,
-    @Body() recentActivitiesDto: RecentActivitiesDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
     return this.adminService.addRecentActivities(
       admin,
-      recentActivitiesDto,
       image,
     );
   }
@@ -107,6 +130,31 @@ export class AdminController {
     return this.adminService.deleteRecentActivity(id);
   }
 
+  //Mobile recent Activities
+  @UseGuards(JwtGuard)
+  @Post('recentactivitiesmobile')
+  @UseInterceptors(FileInterceptor('file'))
+  addRecentActivityMobile(
+    @GetUser() admin: Admin,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.adminService.addRecentActivityMobile(
+      admin,
+      image,
+    );
+  }
+  //all mobile recent activities
+  @Get('recentactivitiesmobile')
+  getAllRecentActivitiesMobile() {
+    return this.adminService.getAllRecentActicitiesMobile();
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('recentactivitiesmobile/:id')
+  deleteRecentActivityMobile(@Param('id') id: string) {
+    return this.adminService.deleteRecentActivityMobile(id);
+  }
+
   //ABOUTUS
   //adding AboutUs
   @UseGuards(JwtGuard)
@@ -114,14 +162,9 @@ export class AdminController {
   @UseInterceptors(FileInterceptor('file'))
   addAboutUs(
     @GetUser() admin: Admin,
-    @Body() aboutUsDto: AboutUsDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    return this.adminService.addAboutUs(
-      admin,
-      aboutUsDto,
-      image,
-    );
+    return this.adminService.addAboutUs(admin, image);
   }
   //getting all AboutUs
   @Get('aboutus')
@@ -133,5 +176,39 @@ export class AdminController {
   @Delete('aboutus/:id')
   deleteAboutUs(@Param('id') id: string) {
     return this.adminService.deleteAboutUs(id);
+  }
+
+  //ABOUT US HERO IMAGE
+  //add Hero Image
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('aboutusheroimage')
+  addAboutUsHeroImage(
+    @GetUser() admin: Admin,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.adminService.addAboutUsHeroImage(
+      admin,
+      image,
+    );
+  }
+
+  //update heroimage
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Put('aboutusheroimage')
+  updateAboutUsHeroImage(
+    @GetUser() admin: Admin,
+    @UploadedFile() image: Express.Multer.File,
+  ) {
+    return this.adminService.updateAboutUsHeroImage(
+      admin,
+      image,
+    );
+  }
+  //getHeroImage
+  @Get('aboutusheroimage')
+  getHeroAboutUsImage() {
+    return this.adminService.getAboutUsHeroImage();
   }
 }
