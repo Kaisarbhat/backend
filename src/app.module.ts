@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
@@ -9,7 +9,6 @@ import { PaymentModule } from './payment/payment.module';
 import { AdminModule } from './admin/admin.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -27,16 +26,6 @@ import { MailerModule } from '@nestjs-modules/mailer';
     PaymentModule,
     AdminModule,
     PassportModule.register({}),
-    MailerModule.forRoot({
-      transport: {
-        host: 'sandbox.smtp.mailtrap.io',
-        port: 2525,
-        auth: {
-          user: 'bb200afc0b3d3a',
-          pass: '8cebcf2510af47',
-        },
-      },
-    }),
   ],
   controllers: [],
   providers: [JwtStrategy],

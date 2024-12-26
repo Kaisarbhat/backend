@@ -7,14 +7,12 @@ import {
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UserDto, UserResponseDto } from 'src/dto/user.dto';
 import { PrismaService } from 'src/prisma/prismaService';
-import { MailerService } from '@nestjs-modules/mailer';
 import { EventRegistrationDto } from 'src/dto/event.registration.dto';
 import { Prisma } from '@prisma/client';
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
-    private mailerService: MailerService,
     private emailService: EmailService,
   ) {}
   //adding users to club
@@ -40,21 +38,6 @@ export class UsersService {
     }
   }
 
-  //sending email to joined users
-  async sendEmail(
-    to: string,
-    from: string,
-    subject: string,
-    html: string,
-  ) {
-    return await this.mailerService.sendMail({
-      to: to,
-      from: from,
-      subject: subject,
-      html: html,
-    });
-  }
-
   //Check if the user already registered for an event
   private async checkExistingRegistration(
     email: string,
@@ -63,9 +46,11 @@ export class UsersService {
     const existingRegistration =
       await this.prisma.registrationData.findFirst({
         where: {
-          AND: [{ email }, { eventId }],
+          email,
+          eventId,
         },
       });
+    console.log(existingRegistration);
 
     if (existingRegistration) {
       throw new ForbiddenException(

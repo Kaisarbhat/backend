@@ -1,4 +1,3 @@
-import { Payment } from './../../node_modules/.prisma/client/index.d';
 import { RazorpayConfig } from './razorpay.config';
 import { OrderDto } from './../dto/order.dto';
 import {
@@ -79,13 +78,9 @@ export class PaymentService {
       }
       const paymentData =
         await this.processPaymentResponse(payment);
-      const savedPayment = await this.prisma.payment.create(
-        {
-          data: paymentData,
-        },
-      );
-
-      console.log('Saved Payment :', savedPayment);
+      await this.prisma.payment.create({
+        data: paymentData,
+      });
       return {
         msg: 'Payment verified successfully',
         orderId: dto.razorpayOrderId,

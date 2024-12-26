@@ -5,9 +5,10 @@ describe('Admin', () => {
   let provider: Admin;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [Admin],
-    }).compile();
+    const module: TestingModule =
+      await Test.createTestingModule({
+        providers: [Admin],
+      }).compile();
 
     provider = module.get<Admin>(Admin);
   });

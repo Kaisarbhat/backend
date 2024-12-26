@@ -132,7 +132,7 @@ export class EventsService {
           },
         },
         orderBy: {
-          date: 'asc',
+          date: 'desc',
         },
       });
     } catch (error) {

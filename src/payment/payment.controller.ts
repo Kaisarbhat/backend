@@ -23,7 +23,6 @@ export class PaymentController {
   }
   @Post('success')
   paymentSuccess(@Req() req: Request) {
-    console.log(req.body);
     return this.paymentService.verifyOrder(req.body);
   }
 
