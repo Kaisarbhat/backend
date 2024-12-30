@@ -50,7 +50,6 @@ export class UsersService {
           eventId,
         },
       });
-    console.log(existingRegistration);
 
     if (existingRegistration) {
       throw new ForbiddenException(

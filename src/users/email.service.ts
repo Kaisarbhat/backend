@@ -111,6 +111,13 @@ export class EmailService {
   ) {
     const FRONTEND_URL = this.config.get('FRONTEND_URL');
     const EMAIL_USER = this.config.get('EMAIL_USER');
+    const date = new Date(event?.date);
+    const formattedDate = date.toLocaleDateString('en-Us', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
     const mailOptions = {
       from: EMAIL_USER,
       to: email,
@@ -149,7 +156,7 @@ export class EmailService {
                                                   <td style="padding: 20px;">
                                                       <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 18px;">Event Details</h2>
                                                       <p style="margin: 0 0 10px 0; color: #666666;">
-                                                          <strong>Date:</strong> ${event.date}
+                                                          <strong>Date:</strong> ${formattedDate}
                                                       </p>
                                                       <p style="margin: 0 0 10px 0; color: #666666;">
                                                           <strong>Location:</strong> ${event.location}
@@ -165,8 +172,8 @@ export class EmailService {
                                           <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 18px;">Next Steps</h2>
                                           <p style="margin: 0 0 10px 0; color: #666666;">1. Save this email for your records</p>
                                           <p style="margin: 0 0 10px 0; color: #666666;">2. Add the event to your calendar</p>
-                                          <p style="margin: 0; color: #666666;">3. Check our Past Events</p>
-                                          <p style="margin: 0; color: #666666;">3. Follow our social media for updates</p>
+                                          <p style="margin: 0 0 10px 0; color: #666666;">3. Check our Past Events</p>
+                                          <p style="margin: 0 0 10px 0; color: #666666;">4. Follow our social media for updates</p>
                                       </td>
                                   </tr>
                                    <tr>
@@ -186,7 +193,7 @@ export class EmailService {
                                           </p>
                                           <p>Best regards,<br>Chennai Trail Club</p>
                                          <div class="footer">
-                                           <p>This email was sent to ${email}. If you didn't register for an account, please ignore this email.</p>
+                                           <p>This email was sent to ${email}. If you didn't register for the event, please ignore this email.</p>
                                          </div>
                                       </td>
                                   </tr>
