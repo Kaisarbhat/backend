@@ -10,7 +10,7 @@ import {
 export class EventRegistrationDto {
   @IsString()
   @IsOptional()
-  eventIs: String;
+  eventId: string;
   @IsString()
   @IsNotEmpty()
   runningCategory: string;

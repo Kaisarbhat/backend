@@ -22,7 +22,7 @@ export class UsersService {
         data: userDto,
       });
       //sending mail after successfull registration
-      await this.emailService.sendRegistrationConfirmation(
+      await this.emailService.sendMembershipConfirmation(
         userDto.email,
         userDto.name,
       );
@@ -108,11 +108,27 @@ export class UsersService {
                   eventId,
                 },
               });
-
+            await this.emailService.sendMembershipConfirmation(
+              dto.email,
+              dto.firstName,
+            );
+            const event = await this.prisma.event.findFirst(
+              {
+                where: { id: registration.eventId },
+              },
+            );
+            await this.emailService.eventRegistrationConfirmation(
+              event,
+              registration.firstName,
+              registration.email,
+            );
             return {
               registration,
               user,
             };
+          },
+          {
+            timeout: 10000,
           },
         );
       } else {
@@ -124,7 +140,14 @@ export class UsersService {
               eventId,
             },
           });
-
+        const event = await this.prisma.event.findUnique({
+          where: { id: registration.eventId },
+        });
+        await this.emailService.eventRegistrationConfirmation(
+          event,
+          registration.firstName,
+          registration.email,
+        );
         return { registration };
       }
     } catch (error) {
