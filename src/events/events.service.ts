@@ -94,6 +94,9 @@ export class EventsService {
         where: {
           id: eventId,
         },
+        include: {
+          sponsors: true,
+        },
       });
       if (!event)
         throw new NotFoundException(
@@ -111,6 +114,9 @@ export class EventsService {
       return await this.prisma.event.findMany({
         orderBy: {
           date: 'desc',
+        },
+        include: {
+          sponsors: true,
         },
       });
     } catch (error) {

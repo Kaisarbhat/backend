@@ -19,8 +19,8 @@ model User {
 }
 
 model Event {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
-  name             String    @unique
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
+  name             String     @unique
   shortName        String
   eventBannerOne   String
   eventBannerTwo   String
@@ -37,10 +37,11 @@ model Event {
   bottomText       String
   warning          String
   createdBy        String
-  createdAt        DateTime  @default(now())
+  createdAt        DateTime   @default(now())
   updatedBy        String?
-  updatedAt        DateTime? @updatedAt
+  updatedAt        DateTime?  @updatedAt
   resultLink       String?
+  sponsors         Sponsors[]
 }
 
 model Admin {
@@ -166,6 +167,19 @@ model HeroImage {
   createdAt DateTime  @default(now())
   updatedBy String?
   updatedAt DateTime? @updatedAt
+}
+
+model Sponsors {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String
+  eventId   String    @db.ObjectId
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
+  Event     Event     @relation(fields: [eventId], references: [id])
+
+  @@unique([imageUrl, eventId])
 }
 
 enum OrderStatus {

@@ -211,4 +211,17 @@ export class AdminController {
   getHeroAboutUsImage() {
     return this.adminService.getAboutUsHeroImage();
   }
+
+  //SPONSORS
+  //add sponsors
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  @Post('sponsors/:id')
+  addSponsors(
+    @GetUser() admin: Admin,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.adminService.addSponsors(admin, id, file);
+  }
 }

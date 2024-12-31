@@ -441,4 +441,38 @@ export class AdminService {
       throw error;
     }
   }
+  //SPONSORS
+  //add sponsors to an event
+  async addSponsors(
+    admin: Admin,
+    eventId: string,
+    file: Express.Multer.File,
+  ) {
+    try {
+      const event = await this.prisma.event.findUnique({
+        where: { id: eventId },
+      });
+      if (!event) {
+        throw new BadRequestException(
+          `Event with id : ${eventId} doesn't exits`,
+        );
+      }
+      const imageUrl =
+        await this.s3Service.uploadFile(file);
+      return await this.prisma.sponsors.create({
+        data: {
+          eventId: eventId,
+          imageUrl: imageUrl,
+          createdBy: admin.username,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'Sponsor Already Exists',
+        );
+      }
+      throw error;
+    }
+  }
 }
