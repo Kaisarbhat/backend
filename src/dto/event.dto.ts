@@ -118,4 +118,7 @@ export class UpdateEventDto {
   @IsString()
   @IsOptional()
   warning?: string;
+  @IsArray()
+  @IsOptional()
+  sponsors?: string[];
 }

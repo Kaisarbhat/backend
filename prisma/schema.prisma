@@ -52,41 +52,6 @@ model Admin {
   updatedAt DateTime? @updatedAt
 }
 
-model RegistrationData {
-  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
-  eventId                  String   @db.ObjectId
-  runningCategory          String
-  firstName                String
-  lastName                 String
-  mobile                   String
-  email                    String
-  gender                   String
-  dateOfBirth              String
-  tShirtSize               String
-  city                     String
-  state                    String
-  bloodGroup               String
-  bibName                  String
-  runningClub              String
-  emergencyContactName     String
-  emergencyContactRelation String
-  emergencyContactNumber   String
-  cardiovascularDisease    String
-  medicalSupervision       String
-  pregnancyRisk            String
-  asthma                   String
-  dizziness                String
-  chestPain                String
-  chronicIllness           String
-  otherMedicalConditions   String?
-  timingCertificates       String
-  createdAt                DateTime @default(now())
-  waiverAcknowledgement    Boolean
-  joinClub                 Boolean?
-
-  @@unique([email, eventId])
-}
-
 model OurFeatures {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   imageUrl    String
@@ -144,6 +109,64 @@ model Order {
   @@index([status])
 }
 
+model HeroImage {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String    @unique
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
+}
+
+model Sponsors {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  imageUrl  String
+  eventId   String?   @db.ObjectId
+  createdBy String
+  createdAt DateTime  @default(now())
+  updatedBy String?
+  updatedAt DateTime? @updatedAt
+  Event     Event?    @relation(fields: [eventId], references: [id])
+
+  @@unique([imageUrl, eventId])
+}
+
+model RegistrationData {
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  eventId                  String   @db.ObjectId
+  paymentId                String   @unique @db.ObjectId
+  runningCategory          String
+  firstName                String
+  lastName                 String
+  mobile                   String
+  email                    String
+  gender                   String
+  dateOfBirth              String
+  tShirtSize               String
+  city                     String
+  state                    String
+  bloodGroup               String
+  bibName                  String
+  runningClub              String
+  emergencyContactName     String
+  emergencyContactRelation String
+  emergencyContactNumber   String
+  cardiovascularDisease    String
+  medicalSupervision       String
+  pregnancyRisk            String
+  asthma                   String
+  dizziness                String
+  chestPain                String
+  chronicIllness           String
+  otherMedicalConditions   String?
+  timingCertificates       String
+  createdAt                DateTime @default(now())
+  waiverAcknowledgement    Boolean
+  joinClub                 Boolean?
+
+  @@unique([email, eventId])
+}
+
 model Payment {
   id                String         @id @default(auto()) @map("_id") @db.ObjectId
   razorpayPaymentId String         @unique
@@ -158,28 +181,6 @@ model Payment {
   errorDescription  String?
   orderId           String
   createdAt         DateTime       @default(now())
-}
-
-model HeroImage {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl  String    @unique
-  createdBy String
-  createdAt DateTime  @default(now())
-  updatedBy String?
-  updatedAt DateTime? @updatedAt
-}
-
-model Sponsors {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  imageUrl  String
-  eventId   String    @db.ObjectId
-  createdBy String
-  createdAt DateTime  @default(now())
-  updatedBy String?
-  updatedAt DateTime? @updatedAt
-  Event     Event     @relation(fields: [eventId], references: [id])
-
-  @@unique([imageUrl, eventId])
 }
 
 enum OrderStatus {

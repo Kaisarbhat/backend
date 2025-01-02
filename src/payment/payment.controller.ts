@@ -15,10 +15,7 @@ export class PaymentController {
     private readonly paymentService: PaymentService,
   ) {}
   @Post('checkout')
-  createOrder(
-    // @Param('id') id: string,
-    @Body() orderDto: OrderDto,
-  ) {
+  createOrder(@Body() orderDto: OrderDto) {
     return this.paymentService.createOrder(orderDto);
   }
   @Post('success')

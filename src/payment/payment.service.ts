@@ -8,6 +8,8 @@ import { PrismaService } from 'src/prisma/prismaService';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { PaymentMethod } from '@prisma/client';
+import { UsersService } from 'src/users/users.service';
+import { EventRegistrationDto } from 'src/dto/event.registration.dto';
 
 @Injectable()
 export class PaymentService {
@@ -15,6 +17,7 @@ export class PaymentService {
     private readonly razorpayConfig: RazorpayConfig,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly usersService: UsersService,
   ) {}
   //creating an order
   async createOrder(orderDto: OrderDto) {
@@ -54,19 +57,24 @@ export class PaymentService {
     razorpayOrderId: string;
     razorpayPaymentId: string;
     razorpaySignature: string;
+    registrationData: EventRegistrationDto;
+    eventId: string;
   }) {
     try {
+      // Verify payment signature first (outside transaction)
       const secret = this.config.get('RAZORPAY_KEY_SECRET');
       const hmac = crypto.createHmac('sha256', secret);
       const data = `${dto.razorpayOrderId}|${dto.razorpayPaymentId}`;
       hmac.update(data);
       const generatedSignature = hmac.digest('hex');
+
       if (generatedSignature !== dto.razorpaySignature) {
         throw new BadRequestException(
           'Invalid Payment Signature',
         );
       }
-      //optionally verifying with razorpay
+
+      // Verify payment with Razorpay
       const payment = await this.razorpayConfig
         .getInstance()
         .payments.fetch(dto.razorpayPaymentId);
@@ -76,17 +84,39 @@ export class PaymentService {
           'Payment not captured',
         );
       }
-      const paymentData =
-        await this.processPaymentResponse(payment);
-      await this.prisma.payment.create({
-        data: paymentData,
-      });
-      return {
-        msg: 'Payment verified successfully',
-        orderId: dto.razorpayOrderId,
-        paymentId: dto.razorpayPaymentId,
-        status: payment.status,
-      };
+
+      // Process payment and create records in transaction with increased timeout
+      return await this.prisma.$transaction(
+        async (tx) => {
+          // Create payment record
+          const paymentData =
+            await this.processPaymentResponse(payment);
+          const createdPayment = await tx.payment.create({
+            data: paymentData,
+          });
+
+          // Create registration record with payment reference
+          const registration =
+            await this.usersService.registerForEvent(
+              dto.registrationData,
+              dto.eventId,
+              createdPayment.id,
+              tx, // Pass transaction client
+            );
+
+          return {
+            msg: 'Payment verified and registration completed successfully',
+            orderId: dto.razorpayOrderId,
+            paymentId: dto.razorpayPaymentId,
+            registrationId: registration.registration.id,
+            status: payment.status,
+          };
+        },
+        {
+          timeout: 10000, // Increased timeout to 10 seconds
+          maxWait: 20000,
+        },
+      );
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -96,23 +126,14 @@ export class PaymentService {
       );
     }
   }
+
   private async processPaymentResponse(razorpayResponse) {
     const amountInRupees = razorpayResponse.amount / 100;
-
-    // Map payment method from Razorpay to your enum
     const paymentMethod = this.mapPaymentMethod(
       razorpayResponse.method,
     );
 
-    // Create payment details object
-    const paymentDetails = {
-      wallet: razorpayResponse.wallet || null,
-      bank: razorpayResponse.bank || null,
-      vpa: razorpayResponse.vpa || null,
-    };
-
-    // Create payment record
-    const payment = {
+    return {
       razorpayPaymentId: razorpayResponse.id,
       amount: amountInRupees,
       currency: razorpayResponse.currency,
@@ -120,14 +141,17 @@ export class PaymentService {
       method: paymentMethod,
       email: razorpayResponse.email,
       contact: razorpayResponse.contact,
-      paymentDetails: paymentDetails,
+      paymentDetails: {
+        wallet: razorpayResponse.wallet || null,
+        bank: razorpayResponse.bank || null,
+        vpa: razorpayResponse.vpa || null,
+      },
       errorCode: razorpayResponse.error_code,
       errorDescription: razorpayResponse.error_description,
       orderId: razorpayResponse.order_id,
     };
-
-    return payment;
   }
+
   private mapPaymentMethod(
     razorpayMethod: string,
   ): PaymentMethod {

@@ -92,4 +92,7 @@ export class EventRegistrationDto {
   @IsBoolean()
   @IsOptional()
   joinClub: boolean;
+  @IsString()
+  @IsNotEmpty()
+  paymentId: string;
 }

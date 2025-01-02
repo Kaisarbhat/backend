@@ -37,39 +37,116 @@ export class UsersService {
       }
     }
   }
+  //register for event
 
-  //Check if the user already registered for an event
-  private async checkExistingRegistration(
-    email: string,
+  async registerForEvent(
+    dto: EventRegistrationDto,
     eventId: string,
+    paymentId: string,
+    txClient?: any,
   ) {
-    const existingRegistration =
-      await this.prisma.registrationData.findFirst({
-        where: {
-          email,
-          eventId,
-        },
-      });
+    const prismaClient = txClient || this.prisma;
 
-    if (existingRegistration) {
-      throw new ForbiddenException(
-        'User has already registered for this event',
-      );
+    try {
+      if (dto.joinClub) {
+        // Handle club membership
+        const user = await this.findOrCreateUser(
+          dto,
+          prismaClient,
+        );
+
+        // Create event registration
+        const registration =
+          await prismaClient.registrationData.create({
+            data: {
+              ...dto,
+              eventId,
+              paymentId,
+            },
+          });
+
+        // Send emails outside the transaction
+        setImmediate(async () => {
+          try {
+            await this.emailService.sendMembershipConfirmation(
+              dto.email,
+              dto.firstName,
+            );
+            const event =
+              await this.prisma.event.findUnique({
+                where: { id: registration.eventId },
+              });
+            await this.emailService.eventRegistrationConfirmation(
+              event,
+              registration.firstName,
+              registration.email,
+            );
+          } catch (error) {
+            console.error('Email sending failed:', error);
+          }
+        });
+
+        return { registration, user };
+      } else {
+        // Simple event registration without club joining
+        const registration =
+          await prismaClient.registrationData.create({
+            data: {
+              ...dto,
+              eventId,
+              paymentId,
+            },
+          });
+
+        // Send email outside the transaction
+        setImmediate(async () => {
+          try {
+            const event =
+              await this.prisma.event.findUnique({
+                where: { id: registration.eventId },
+              });
+            await this.emailService.eventRegistrationConfirmation(
+              event,
+              registration.firstName,
+              registration.email,
+            );
+          } catch (error) {
+            console.error('Email sending failed:', error);
+          }
+        });
+
+        return { registration };
+      }
+    } catch (error) {
+      if (
+        error instanceof
+        Prisma.PrismaClientKnownRequestError
+      ) {
+        if (error.code === 'P2002') {
+          throw new ForbiddenException(
+            'User has already registered for this event',
+          );
+        }
+      }
+      throw error;
     }
   }
 
   private async findOrCreateUser(
     dto: EventRegistrationDto,
+    prismaClient: any,
   ) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    const existingUser = await prismaClient.user.findUnique(
+      {
+        where: { email: dto.email },
+      },
+    );
 
     if (existingUser) {
       return existingUser;
     }
 
-    return await this.prisma.user.create({
+    return await prismaClient.user.create({
       data: {
         name: `${dto.firstName} ${dto.lastName}`,
         email: dto.email,
@@ -80,94 +157,21 @@ export class UsersService {
     });
   }
 
-  //register for event
-  async registerForEvent(
-    eventId: string,
-    dto: EventRegistrationDto,
-  ) {
+  async checkregistration(email: string, eventId: string) {
     try {
-      // First check if user is already registered for this event
-      await this.checkExistingRegistration(
-        dto.email,
-        eventId,
-      );
-
-      // If user wants to join club, we need to handle user creation/lookup
-      if (dto.joinClub) {
-        return await this.prisma.$transaction(
-          async (tx) => {
-            // Create or get existing user
-            const user = await this.findOrCreateUser(dto);
-
-            // Create event registration
-            const registration =
-              await tx.registrationData.create({
-                data: {
-                  ...dto,
-                  eventId,
-                },
-              });
-            await this.emailService.sendMembershipConfirmation(
-              dto.email,
-              dto.firstName,
-            );
-            const event = await this.prisma.event.findFirst(
-              {
-                where: { id: registration.eventId },
-              },
-            );
-            await this.emailService.eventRegistrationConfirmation(
-              event,
-              registration.firstName,
-              registration.email,
-            );
-            return {
-              registration,
-              user,
-            };
+      const registration =
+        await this.prisma.registrationData.findFirst({
+          where: {
+            email,
+            eventId,
           },
-          {
-            timeout: 10000,
-          },
-        );
-      } else {
-        // Simple event registration without club joining
-        const registration =
-          await this.prisma.registrationData.create({
-            data: {
-              ...dto,
-              eventId,
-            },
-          });
-        const event = await this.prisma.event.findUnique({
-          where: { id: registration.eventId },
         });
-        await this.emailService.eventRegistrationConfirmation(
-          event,
-          registration.firstName,
-          registration.email,
-        );
-        return { registration };
-      }
+      return { exists: !!registration };
     } catch (error) {
-      if (
-        error instanceof
-        Prisma.PrismaClientKnownRequestError
-      ) {
-        // Handle unique constraint violations
-        if (error.code === 'P2002') {
-          throw new ForbiddenException(
-            'User has already registered for this event',
-          );
-        }
-        // Handle transaction failures
-        if (error.code === 'P2034') {
-          throw new BadRequestException(
-            'Transaction failed, please try again',
-          );
-        }
-      }
-      throw error;
+      throw new BadRequestException(
+        'Failed to check registration status : ',
+        error,
+      );
     }
   }
   async getAllUsers() {

@@ -20,6 +20,7 @@ export class EventsService {
   ) {}
 
   //creating the event
+
   async createEvent(
     admin: Admin,
     files: {
@@ -41,14 +42,21 @@ export class EventsService {
         files.file5?.[0],
       ];
 
-      // If any required files are missing, throw an error
-      if (!file1 || !file2 || !file3 || !file4 || !file5) {
-        throw new Error(
-          'All files (file1, file2, file3) must be provided.',
+      // Check for required files
+      const missingFiles = [];
+      if (!file1) missingFiles.push('Banner One');
+      if (!file2) missingFiles.push('Banner Two');
+      if (!file3) missingFiles.push('Banner Three');
+      if (!file4) missingFiles.push('Middle Image');
+      if (!file5) missingFiles.push('Bottom Image');
+
+      if (missingFiles.length > 0) {
+        throw new ForbiddenException(
+          `Missing required images: ${missingFiles.join(', ')}`,
         );
       }
 
-      // Promise.all to upload files in parallel for better performance
+      // Upload files
       const [
         eventBannerOne,
         eventBannerTwo,
@@ -73,9 +81,15 @@ export class EventsService {
           eventBannerThree,
           middleImageUrl,
           bottomImageUrl,
+          sponsors: {
+            create: [],
+          },
         },
       });
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       if (error.code === 'P2002') {
         throw new ForbiddenException(
           `Event with ${createEventDto.name} Already exists`,

@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { UserDto } from 'src/dto/user.dto';
 import { UsersService } from './users.service';
-import { EventRegistrationDto } from 'src/dto/event.registration.dto';
 import { JwtGuard } from 'src/auth/auth.guard';
 
 @Controller('users')
@@ -19,15 +18,15 @@ export class UsersController {
   joinus(@Body() userDto: UserDto) {
     return this.userService.joinus(userDto);
   }
-  //registering users for events
-  @Post('register/:id')
-  registerForEvent(
-    @Param('id') id: string,
-    @Body() eventRegistrationDto: EventRegistrationDto,
+
+  @Get('registration/:eventId/:email')
+  async checkExistingRegistration(
+    @Param('eventId') eventId: string,
+    @Param('email') email: string,
   ) {
-    return this.userService.registerForEvent(
-      id,
-      eventRegistrationDto,
+    return this.userService.checkregistration(
+      email,
+      eventId,
     );
   }
   //get all users
