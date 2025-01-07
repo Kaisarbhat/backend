@@ -20,7 +20,6 @@ export class EventsService {
   ) {}
 
   //creating the event
-
   async createEvent(
     admin: Admin,
     files: {
@@ -81,9 +80,6 @@ export class EventsService {
           eventBannerThree,
           middleImageUrl,
           bottomImageUrl,
-          sponsors: {
-            create: [],
-          },
         },
       });
     } catch (error) {
@@ -143,7 +139,6 @@ export class EventsService {
     const currentDate = new Date()
       .toISOString()
       .split('T')[0];
-
     try {
       return await this.prisma.event.findMany({
         where: {

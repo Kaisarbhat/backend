@@ -17,10 +17,10 @@ export class S3Service {
       ),
     });
   }
-  //AWS Details and connecting to s3 bucket
 
+  //AWS Details and connecting to s3 bucket
   AWS_S3_BUCKET = this.config.get('S3_BUCKET');
-  async uploadFile(file) {
+  async uploadFile(file: Express.Multer.File) {
     const { originalname } = file;
     const imagesTypes = [
       'image/png',

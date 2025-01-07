@@ -14,10 +14,12 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
   ) {}
+
   @Post('checkout')
   createOrder(@Body() orderDto: OrderDto) {
     return this.paymentService.createOrder(orderDto);
   }
+
   @Post('success')
   paymentSuccess(@Req() req: Request) {
     return this.paymentService.verifyOrder(req.body);

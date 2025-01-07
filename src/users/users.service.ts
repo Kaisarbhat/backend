@@ -15,6 +15,7 @@ export class UsersService {
     private prisma: PrismaService,
     private emailService: EmailService,
   ) {}
+
   //adding users to club
   async joinus(userDto: UserDto): Promise<UserResponseDto> {
     try {
@@ -37,8 +38,8 @@ export class UsersService {
       }
     }
   }
-  //register for event
 
+  //register for event
   async registerForEvent(
     dto: EventRegistrationDto,
     eventId: string,
@@ -82,10 +83,11 @@ export class UsersService {
               registration.email,
             );
           } catch (error) {
-            console.error('Email sending failed:', error);
+            throw new Error(
+              `Email sending failed : ${error}`,
+            );
           }
         });
-
         return { registration, user };
       } else {
         // Simple event registration without club joining
@@ -111,7 +113,9 @@ export class UsersService {
               registration.email,
             );
           } catch (error) {
-            console.error('Email sending failed:', error);
+            throw new Error(
+              `Email sending failed : ${error}`,
+            );
           }
         });
 
@@ -157,6 +161,7 @@ export class UsersService {
     });
   }
 
+  //checking for existing registration
   async checkregistration(email: string, eventId: string) {
     try {
       const registration =
@@ -172,17 +177,6 @@ export class UsersService {
         'Failed to check registration status : ',
         error,
       );
-    }
-  }
-  async getAllUsers() {
-    try {
-      return this.prisma.user.findMany({
-        orderBy: {
-          name: 'asc',
-        },
-      });
-    } catch (error) {
-      throw error;
     }
   }
 }

@@ -93,27 +93,11 @@ model AboutUsHeroImage {
   updatedAt DateTime? @updatedAt
 }
 
-model Order {
-  id              String      @id @default(auto()) @map("_id") @db.ObjectId
-  razorpayOrderId String      @unique
-  amount          Float
-  currency        String      @default("INR")
-  status          OrderStatus @default(CREATED)
-  receipt         String?
-  notes           Json?
-  userId          String?     @db.ObjectId
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  @@index([userId])
-  @@index([status])
-}
-
 model HeroImage {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   imageUrl  String    @unique
   createdBy String
-  createdAt DateTime  @default(now())
+  createdAt DateTime? @default(now())
   updatedBy String?
   updatedAt DateTime? @updatedAt
 }
@@ -181,14 +165,6 @@ model Payment {
   errorDescription  String?
   orderId           String
   createdAt         DateTime       @default(now())
-}
-
-enum OrderStatus {
-  CREATED
-  ATTEMPTED
-  PAID
-  FAILED
-  EXPIRED
 }
 
 enum PaymentMethod {

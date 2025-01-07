@@ -5,9 +5,10 @@ describe('PaymentService', () => {
   let service: PaymentService;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [PaymentService],
-    }).compile();
+    const module: TestingModule =
+      await Test.createTestingModule({
+        providers: [PaymentService],
+      }).compile();
 
     service = module.get<PaymentService>(PaymentService);
   });

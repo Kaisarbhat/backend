@@ -98,8 +98,9 @@ export class EmailService {
     try {
       return await this.transporter.sendMail(mailOptions);
     } catch (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send confirmation email');
+      throw new Error(
+        `Failed to send confirmation email  : ${error}`,
+      );
     }
   }
 
@@ -206,8 +207,9 @@ export class EmailService {
     try {
       return await this.transporter.sendMail(mailOptions);
     } catch (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send confirmation email');
+      throw new Error(
+        `Failed to send confirmation email : ${error}`,
+      );
     }
   }
 }

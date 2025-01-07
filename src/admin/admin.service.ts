@@ -63,6 +63,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //update heroImage
   async updateHeroImage(
     admin: Admin,
@@ -71,7 +72,6 @@ export class AdminService {
     try {
       const existingImage =
         await this.prisma.heroImage.findFirst();
-      const { createdBy, createdAt } = existingImage;
       const imageUrl =
         await this.s3Service.uploadFile(image);
       if (imageUrl === existingImage.imageUrl) {
@@ -82,8 +82,7 @@ export class AdminService {
       return await this.prisma.heroImage.update({
         where: { id: existingImage.id },
         data: {
-          createdBy: createdBy,
-          createdAt: createdAt,
+          ...existingImage,
           imageUrl: imageUrl,
           updatedBy: admin.username,
         },
@@ -97,6 +96,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //get heroimage
   async getHeroImage() {
     try {
@@ -105,6 +105,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //adding ourFeatures to database
   async addOurFeatures(
     file: Express.Multer.File,
@@ -280,6 +281,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //delete
   async deleteRecentActivityMobile(id: string) {
     try {
@@ -320,11 +322,11 @@ export class AdminService {
     file: Express.Multer.File,
   ) {
     try {
-      const ImageUrl =
+      const imageUrl =
         await this.s3Service.uploadFile(file);
       return await this.prisma.aboutUs.create({
         data: {
-          imageUrl: ImageUrl,
+          imageUrl: imageUrl,
           createdBy: admin.username,
         },
       });
@@ -399,6 +401,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //update heroImage
   async updateAboutUsHeroImage(
     admin: Admin,
@@ -407,7 +410,6 @@ export class AdminService {
     try {
       const existingImage =
         await this.prisma.aboutUsHeroImage.findFirst();
-      const { createdBy, createdAt } = existingImage;
       const imageUrl =
         await this.s3Service.uploadFile(image);
       if (imageUrl === existingImage.imageUrl) {
@@ -418,8 +420,7 @@ export class AdminService {
       return await this.prisma.aboutUsHeroImage.update({
         where: { id: existingImage.id },
         data: {
-          createdBy: createdBy,
-          createdAt: createdAt,
+          ...existingImage,
           imageUrl: imageUrl,
           updatedBy: admin.username,
         },
@@ -433,6 +434,7 @@ export class AdminService {
       throw error;
     }
   }
+
   //get heroimage
   async getAboutUsHeroImage() {
     try {

@@ -17,6 +17,7 @@ export class AuthService {
     private config: ConfigService,
     private jwt: JwtService,
   ) {}
+  //Admin SignUp
   async signup(
     admin: AdminDto,
   ): Promise<{ access_token: string }> {
@@ -44,6 +45,8 @@ export class AuthService {
       throw error;
     }
   }
+
+  //Admin Login
   async signIn(
     admin: AdminDto,
   ): Promise<{ access_token: string }> {
@@ -72,6 +75,8 @@ export class AuthService {
       throw error;
     }
   }
+
+  //Update Admin
   async update(
     username: string,
     updateAdminDto: UpdateAdminDto,
@@ -101,7 +106,7 @@ export class AuthService {
           'Passwords do not Match',
         );
       }
-      //creating has hof new password
+      //creating hash of new password
       const newPass = await argon.hash(
         updateAdminDto.newPassword,
       );
@@ -124,6 +129,7 @@ export class AuthService {
       throw error;
     }
   }
+
   //generating jwt
   secret = this.config.get('JWT_SECRET');
   async signToken(

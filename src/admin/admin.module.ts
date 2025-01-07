@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtStrategy } from 'src/strategy/jwt.strategy';
 import { S3Service } from './upload.to.s3';
-// import { S3Service } from './upload.to.s3';
 
 @Module({
   imports: [PassportModule, AuthModule],

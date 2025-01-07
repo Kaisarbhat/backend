@@ -19,6 +19,7 @@ export class PaymentService {
     private readonly config: ConfigService,
     private readonly usersService: UsersService,
   ) {}
+
   //creating an order
   async createOrder(orderDto: OrderDto) {
     try {
@@ -47,11 +48,12 @@ export class PaymentService {
       };
     }
   }
-
+  //secret key for payment
   async getKey() {
     return this.config.get('RAZORPAY_KEY_ID');
   }
 
+  //order verifcation
   async verifyOrder(dto: {
     orderCreationId: string;
     razorpayOrderId: string;

@@ -23,6 +23,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 @Controller('events')
 export class EventsController {
   constructor(private eventService: EventsService) {}
+
   @UseGuards(JwtGuard)
   @Post('createEventWithData')
   @UseInterceptors(
@@ -58,21 +59,25 @@ export class EventsController {
   getEventData(@Param('id') id: string) {
     return this.eventService.getEventData(id);
   }
+
   //Get all events
   @Get('allEvents')
   getAllEvents() {
     return this.eventService.getAllEvents();
   }
+
   //handler for getting upcoming events
   @Get('upcomingevents')
   getUpcomingEvents() {
     return this.eventService.getUpcomingEvents();
   }
+
   //handler for getting pastevents
   @Get('pastevents')
   getPastEvents() {
     return this.eventService.getPastEvents();
   }
+
   //update event
   @UseGuards(JwtGuard)
   @Put('update/:id')
@@ -105,12 +110,15 @@ export class EventsController {
       updateEventDto,
     );
   }
+
+  //Delete Events
   @UseGuards(JwtGuard)
   @Delete('delete/:id')
   deleteEvent(@Param('id') id: string) {
     return this.eventService.deleteEvent(id);
   }
 
+  //Get Recent Event
   @Get('recentevent')
   getRecentEvent() {
     return this.eventService.getRecentEvent();
